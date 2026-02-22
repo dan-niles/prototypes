@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>mockups</title>
+    <script>
+        // GitHub Pages SPA redirect — rafrex/spa-github-pages
+        // Keeps the first path segment (/mockups) and encodes the rest into the query string
+        var pathSegmentsToKeep = 1
+        var l = window.location
+        l.replace(
+            l.protocol +
+            '//' +
+            l.host +
+            l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/') +
+            '/?/' +
+            l.pathname
+                .slice(1)
+                .split('/')
+                .slice(pathSegmentsToKeep)
+                .join('/')
+                .replace(/&/g, '~and~') +
+            (l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '') +
+            l.hash,
+        )
+    </script>
+</head>
+
+<body></body>
+
+</html>
