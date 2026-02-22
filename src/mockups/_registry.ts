@@ -25,4 +25,15 @@ export const registry: MockupEntry[] = [
             },
         ],
     },
+    {
+        slug: 'bi-chat-agent-logs',
+        name: 'Chat Agent Logs',
+        description: 'Revamped chat agent logs view for WSO2 Integrator: BI',
+        versions: [
+            {
+                version: 'v1',
+                component: lazy(() => import('./bi-chat-agent-logs/index')),
+            },
+        ],
+    },
 ]
