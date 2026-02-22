@@ -15,6 +15,25 @@ export interface MockupEntry {
 
 export const registry: MockupEntry[] = [
     {
+        slug: 'bi-function-inputs',
+        name: 'Function Inputs',
+        description: 'A function inputs view for the flow diagram in WSO2 Integrator: BI',
+        versions: [
+            {
+                version: 'v1',
+                component: lazy(() => import('./bi-function-inputs/v1/index')),
+            },
+            {
+                version: 'v2',
+                component: lazy(() => import('./bi-function-inputs/v2/index')),
+            },
+            {
+                version: 'v3',
+                component: lazy(() => import('./bi-function-inputs/v3/index')),
+            },
+        ],
+    },
+    {
         slug: 'bi-data-tree',
         name: 'Data Tree',
         description: 'A data tree for the expression editor in WSO2 Integrator: BI',
