@@ -9,9 +9,9 @@ export interface MockupEntry {
 
 export const registry: MockupEntry[] = [
     {
-        slug: 'example-dashboard',
-        name: 'Example Dashboard',
-        description: 'A sample admin dashboard layout',
-        component: lazy(() => import('./example-dashboard/index')),
+        slug: 'bi-data-tree',
+        name: 'Data Tree',
+        description: 'A data tree for the expression editor in WSO2 Integrator: BI',
+        component: lazy(() => import('./bi-data-tree/index')),
     },
 ]
