@@ -8,8 +8,6 @@ import { WaterfallView } from "./components/WaterfallView";
 import { TraceListView } from "./components/TraceListView";
 import { ChatWindow } from "./components/ChatWindow";
 import { ChartGantt, Download, ArrowLeft, MessageSquare, ListTree, Info } from "lucide-react";
-import SpanTree from "./components/SpanTree";
-import './App.css'
 
 // Mock trace data - designed for visual demo with staggered timing
 const traceData: TraceNode[] = [
@@ -796,8 +794,6 @@ export default function App() {
             spanType={selectedNode.type}
           />
         )}
-
-        <SpanTree></SpanTree>
       </div>
     </div>
   );
