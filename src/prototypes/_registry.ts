@@ -1,19 +1,19 @@
 import { lazy, type ComponentType } from 'react'
 
-export interface MockupVersion {
+export interface PrototypeVersion {
     version: string
     label?: string
     component: React.LazyExoticComponent<ComponentType>
 }
 
-export interface MockupEntry {
+export interface PrototypeEntry {
     slug: string
     name: string
     description: string
-    versions: MockupVersion[]
+    versions: PrototypeVersion[]
 }
 
-export const registry: MockupEntry[] = [
+export const registry: PrototypeEntry[] = [
     {
         slug: 'bi-function-inputs',
         name: 'Function Inputs',

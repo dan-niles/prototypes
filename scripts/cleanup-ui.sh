@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
-# cleanup-ui.sh — find (and optionally delete) unused shadcn/ui components in mockup folders
+# cleanup-ui.sh — find (and optionally delete) unused shadcn/ui components in prototype folders
 #
 # Usage:
-#   ./scripts/cleanup-ui.sh                     # dry run across all mockups
-#   ./scripts/cleanup-ui.sh bi-evalset-editor   # dry run for one mockup
-#   ./scripts/cleanup-ui.sh --delete            # delete unused files across all mockups
+#   ./scripts/cleanup-ui.sh                     # dry run across all prototypes
+#   ./scripts/cleanup-ui.sh bi-evalset-editor   # dry run for one prototype
+#   ./scripts/cleanup-ui.sh --delete            # delete unused files across all prototypes
 #   ./scripts/cleanup-ui.sh bi-evalset-editor --delete
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-MOCKUPS_DIR="$PROJECT_ROOT/src/mockups"
+PROTOTYPES_DIR="$PROJECT_ROOT/src/prototypes"
 
 DELETE=false
 TARGET_SLUG=""
@@ -25,31 +25,31 @@ for arg in "$@"; do
   esac
 done
 
-# Resolve target mockup directories
+# Resolve target prototype directories
 if [[ -n "$TARGET_SLUG" ]]; then
-  mockup_dirs=("$MOCKUPS_DIR/$TARGET_SLUG")
-  if [[ ! -d "${mockup_dirs[0]}" ]]; then
-    echo "Error: mockup '$TARGET_SLUG' not found at ${mockup_dirs[0]}" >&2
+  prototype_dirs=("$PROTOTYPES_DIR/$TARGET_SLUG")
+  if [[ ! -d "${prototype_dirs[0]}" ]]; then
+    echo "Error: prototype '$TARGET_SLUG' not found at ${prototype_dirs[0]}" >&2
     exit 1
   fi
 else
-  mockup_dirs=()
+  prototype_dirs=()
   while IFS= read -r d; do
-    mockup_dirs+=("$d")
-  done < <(find "$MOCKUPS_DIR" -mindepth 1 -maxdepth 1 -type d | sort)
+    prototype_dirs+=("$d")
+  done < <(find "$PROTOTYPES_DIR" -mindepth 1 -maxdepth 1 -type d | sort)
 fi
 
 total_unused=0
 
-for mockup_dir in "${mockup_dirs[@]}"; do
-  slug="$(basename "$mockup_dir")"
-  ui_dir="$mockup_dir/components/ui"
+for prototype_dir in "${prototype_dirs[@]}"; do
+  slug="$(basename "$prototype_dir")"
+  ui_dir="$prototype_dir/components/ui"
 
   [[ -d "$ui_dir" ]] || continue
 
   # Concatenate all non-ui source files into one string for fast grepping
   source_content="$(
-    find "$mockup_dir" \( -name "*.tsx" -o -name "*.ts" \) \
+    find "$prototype_dir" \( -name "*.tsx" -o -name "*.ts" \) \
       ! -path "*/components/ui/*" \
       -exec cat {} +
   )"

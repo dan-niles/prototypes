@@ -1,8 +1,8 @@
-# Mockup Viewer
+# Prototype Viewer
 
-A self-hosted viewer for work mockups, deployed to GitHub Pages at `dan-niles.github.io/mockups`. Built with React, TypeScript, Tailwind CSS v4, and Vite.
+A self-hosted viewer for work prototypes, deployed to GitHub Pages at `dan-niles.github.io/prototypes`. Built with React, TypeScript, Tailwind CSS v4, and Vite.
 
-Each mockup lives at its own URL and is fully self-contained — you can drop in AI-generated code from Figma AI, v0, or any other source with minimal changes.
+Each prototype lives at its own URL and is fully self-contained — you can drop in AI-generated code from Figma AI, v0, or any other source with minimal changes.
 
 ---
 
@@ -10,11 +10,11 @@ Each mockup lives at its own URL and is fully self-contained — you can drop in
 
 | URL | Description |
 |-----|-------------|
-| `/mockups` | Landing page — lists all mockups |
-| `/mockups/:slug` | Redirects to the latest version of that mockup |
-| `/mockups/:slug/:version` | Renders a specific version of a mockup |
+| `/prototypes` | Landing page — lists all prototypes |
+| `/prototypes/:slug` | Redirects to the latest version of that prototype |
+| `/prototypes/:slug/:version` | Renders a specific version of a prototype |
 
-The `BrowserRouter` in `App.tsx` is configured with `basename="/mockups"`, so all routes within the app are relative to that base path.
+The `BrowserRouter` in `App.tsx` is configured with `basename="/prototypes"`, so all routes within the app are relative to that base path.
 
 GitHub Pages doesn't natively support client-side routing, so a `public/404.html` catches unknown paths and redirects them back through `index.html` via a query string trick. A corresponding script in `index.html` decodes that and restores the correct URL before React boots.
 
@@ -24,14 +24,14 @@ GitHub Pages doesn't natively support client-side routing, so a `public/404.html
 
 ```
 src/
-  mockups/
-    _registry.ts              ← central registry of all mockups
-    <mockup-slug>/
-      index.tsx               ← mockup entry point
-      components/             ← mockup-scoped components (self-contained)
+  prototypes/
+    _registry.ts              ← central registry of all prototypes
+    <prototype-slug>/
+      index.tsx               ← prototype entry point
+      components/             ← prototype-scoped components (self-contained)
         ui/                   ← shadcn/ui wrapper components if needed
   pages/
-    MockupIndex.tsx           ← landing page (auto-built from registry)
+    PrototypeIndex.tsx           ← landing page (auto-built from registry)
   App.tsx                     ← router + floating nav control
   index.css                   ← Tailwind import + dark mode variant
   main.tsx                    ← React root
@@ -40,28 +40,28 @@ public/
 index.html                    ← SPA redirect decoder script
 ```
 
-Each mockup folder is **completely self-contained** — its own components, assets, mock data, and UI primitives. Nothing is shared between mockups. This makes it safe to copy-paste code directly from AI tools without worrying about naming conflicts.
+Each prototype folder is **completely self-contained** — its own components, assets, mock data, and UI primitives. Nothing is shared between prototypes. This makes it safe to copy-paste code directly from AI tools without worrying about naming conflicts.
 
 ---
 
 ## Registry
 
-`src/mockups/_registry.ts` is the single file you edit when adding or updating a mockup.
+`src/prototypes/_registry.ts` is the single file you edit when adding or updating a prototype.
 
 ### Types
 
 ```ts
-interface MockupVersion {
+interface PrototypeVersion {
   version: string       // e.g. 'v1', 'v2'
   label?: string        // optional display label, e.g. 'Redesign' — falls back to version.toUpperCase()
   component: React.LazyExoticComponent<ComponentType>
 }
 
-interface MockupEntry {
-  slug: string          // URL segment, e.g. 'bi-data-tree' → /mockups/bi-data-tree
+interface PrototypeEntry {
+  slug: string          // URL segment, e.g. 'bi-data-tree' → /prototypes/bi-data-tree
   name: string          // display name on the index page
   description: string   // subtitle shown on the card
-  versions: MockupVersion[]
+  versions: PrototypeVersion[]
 }
 ```
 
@@ -78,16 +78,16 @@ interface MockupEntry {
 }
 ```
 
-All components are **lazy-loaded** — Vite code-splits each version into its own chunk, so the landing page loads fast regardless of how many mockups exist.
+All components are **lazy-loaded** — Vite code-splits each version into its own chunk, so the landing page loads fast regardless of how many prototypes exist.
 
 ---
 
-## Adding a New Mockup
+## Adding a New Prototype
 
 **1. Create the folder and entry point:**
 
 ```
-src/mockups/your-mockup-name/
+src/prototypes/your-prototype-name/
   index.tsx
   components/       ← optional, add as needed
 ```
@@ -98,11 +98,11 @@ src/mockups/your-mockup-name/
 
 ```ts
 {
-  slug: 'your-mockup-name',
-  name: 'Your Mockup Name',
+  slug: 'your-prototype-name',
+  name: 'Your Prototype Name',
   description: 'What it shows',
   versions: [
-    { version: 'v1', component: lazy(() => import('./your-mockup-name/index')) },
+    { version: 'v1', component: lazy(() => import('./your-prototype-name/index')) },
   ],
 }
 ```
@@ -124,14 +124,14 @@ versions: [
 ```
 
 **Routing behaviour:**
-- `/mockups/dashboard` → redirects to `/mockups/dashboard/v3` (latest)
-- `/mockups/dashboard/v1` → renders v1 directly
+- `/prototypes/dashboard` → redirects to `/prototypes/dashboard/v3` (latest)
+- `/prototypes/dashboard/v1` → renders v1 directly
 - Invalid version in URL → redirects to latest
 
-**Recommended folder structure for versioned mockups:**
+**Recommended folder structure for versioned prototypes:**
 
 ```
-src/mockups/dashboard/
+src/prototypes/dashboard/
   v1/
     index.tsx
     components/
@@ -140,15 +140,15 @@ src/mockups/dashboard/
     components/
 ```
 
-Single-version mockups can keep their files flat (`index.tsx` directly in the slug folder).
+Single-version prototypes can keep their files flat (`index.tsx` directly in the slug folder).
 
 **Index page** shows a "N versions" badge on cards that have more than one version.
 
-**Version switcher** appears as a floating pill in the bottom-left corner of the viewport when viewing a mockup. At rest it's nearly invisible (a faint `←` arrow). On hover it expands to show "← All Mockups" and version tabs for switching between versions. This avoids the switcher distracting from the mockup content.
+**Version switcher** appears as a floating pill in the bottom-left corner of the viewport when viewing a prototype. At rest it's nearly invisible (a faint `←` arrow). On hover it expands to show "← All Prototypes" and version tabs for switching between versions. This avoids the switcher distracting from the prototype content.
 
 ---
 
-## Using AI-Generated Mockups (Figma AI, v0, etc.)
+## Using AI-Generated Prototypes (Figma AI, v0, etc.)
 
 ### Radix UI / shadcn components
 
@@ -157,7 +157,7 @@ Figma AI and v0 output shadcn/ui components which depend on:
 - **Radix UI primitives** (`@radix-ui/react-*`) — installed globally in `package.json`, covers all common primitives
 - **`clsx`**, **`tailwind-merge`**, **`class-variance-authority`** — installed globally, used by shadcn's `cn()` utility
 
-Shadcn wrapper components (`button.tsx`, `avatar.tsx`, `dialog.tsx`, etc.) are **copy-pasted per mockup** into `components/ui/`. Each mockup that needs them gets its own copy, keeping things self-contained.
+Shadcn wrapper components (`button.tsx`, `avatar.tsx`, `dialog.tsx`, etc.) are **copy-pasted per prototype** into `components/ui/`. Each prototype that needs them gets its own copy, keeping things self-contained.
 
 Each `components/ui/` folder needs a `utils.ts` with the `cn` helper:
 
@@ -176,33 +176,33 @@ Files from Next.js-based tools (v0, shadcn CLI) include `"use client"` at the to
 
 ### CSS variables / theming
 
-shadcn components use CSS variables like `--background`, `--foreground`, `--muted`, etc. If a pasted mockup looks unstyled, you may need to add a shadcn theme block to that mockup's CSS or inline it into `index.css`. See the [shadcn theming docs](https://ui.shadcn.com/docs/theming) for the full variable list.
+shadcn components use CSS variables like `--background`, `--foreground`, `--muted`, etc. If a pasted prototype looks unstyled, you may need to add a shadcn theme block to that prototype's CSS or inline it into `index.css`. See the [shadcn theming docs](https://ui.shadcn.com/docs/theming) for the full variable list.
 
 ### Cleaning up unused ui components
 
-AI tools tend to dump the full shadcn component library into `components/ui/` even though most mockups only use a handful of them. `scripts/cleanup-ui.sh` finds and optionally deletes the unused ones.
+AI tools tend to dump the full shadcn component library into `components/ui/` even though most prototypes only use a handful of them. `scripts/cleanup-ui.sh` finds and optionally deletes the unused ones.
 
 ```bash
-# Dry run — all mockups
+# Dry run — all prototypes
 bash scripts/cleanup-ui.sh
 
-# Dry run — one mockup
+# Dry run — one prototype
 bash scripts/cleanup-ui.sh bi-evalset-editor
 
-# Delete unused files — all mockups
+# Delete unused files — all prototypes
 bash scripts/cleanup-ui.sh --delete
 
-# Delete unused files — one mockup
+# Delete unused files — one prototype
 bash scripts/cleanup-ui.sh bi-evalset-editor --delete
 ```
 
-The script scans each mockup's non-ui source files for imports of the form `from "…/ui/<component>"`. Any ui file that is never imported is considered unused. `utils.ts` and `use-mobile.ts` are always kept since they're helpers rather than components.
+The script scans each prototype's non-ui source files for imports of the form `from "…/ui/<component>"`. Any ui file that is never imported is considered unused. `utils.ts` and `use-mobile.ts` are always kept since they're helpers rather than components.
 
 ---
 
 ## Dark Mode
 
-The landing page (`MockupIndex.tsx`) supports dark mode:
+The landing page (`PrototypeIndex.tsx`) supports dark mode:
 
 - **Default**: respects the OS `prefers-color-scheme` setting
 - **Toggle**: sun/moon button in the top-right corner of the landing page
@@ -215,7 +215,7 @@ Dark mode is implemented via a `dark` class on `<html>`, enabled through a Tailw
 @custom-variant dark (&:where(.dark, .dark *));
 ```
 
-Individual mockups can opt into the dark mode class by using `dark:` Tailwind prefixes — the class is on `<html>` so it cascades everywhere. However, since most AI-generated mockups won't include dark mode, there's no expectation that mockup content respects it.
+Individual prototypes can opt into the dark mode class by using `dark:` Tailwind prefixes — the class is on `<html>` so it cascades everywhere. However, since most AI-generated prototypes won't include dark mode, there's no expectation that prototype content respects it.
 
 ---
 
@@ -245,4 +245,4 @@ The workflow:
 3. Runs `npm run build` → outputs to `dist/`
 4. Uploads `dist/` as a Pages artifact and deploys
 
-Vite is configured with `base: '/mockups'` in `vite.config.ts` to match the GitHub Pages subpath.
+Vite is configured with `base: '/prototypes'` in `vite.config.ts` to match the GitHub Pages subpath.

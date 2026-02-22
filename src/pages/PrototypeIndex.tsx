@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { registry } from '../mockups/_registry'
+import { registry } from '../prototypes/_registry'
 import { ArrowRight, Layers, Search, Sun, Moon } from 'lucide-react'
 
 function useDarkMode() {
@@ -18,7 +18,7 @@ function useDarkMode() {
     return [dark, setDark] as const
 }
 
-export default function MockupIndex() {
+export default function PrototypeIndex() {
     const [query, setQuery] = useState('')
     const [dark, setDark] = useDarkMode()
 
@@ -33,7 +33,7 @@ export default function MockupIndex() {
                 <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-3">
                         <Layers className="w-6 h-6 text-blue-500" />
-                        <h1 className="text-2xl font-bold text-gray-900 dark:text-neutral-100">Mockups</h1>
+                        <h1 className="text-2xl font-bold text-gray-900 dark:text-neutral-100">Prototypes</h1>
                     </div>
                     <button
                         onClick={() => setDark(d => !d)}
@@ -44,7 +44,7 @@ export default function MockupIndex() {
                     </button>
                 </div>
                 <p className="text-gray-400 dark:text-neutral-600 text-sm mb-6 ml-9">
-                    {registry.length} mockup{registry.length !== 1 ? 's' : ''}
+                    {registry.length} prototype{registry.length !== 1 ? 's' : ''}
                 </p>
 
                 <div className="flex items-center gap-2 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700/60 rounded-lg px-3 py-2 mb-6 focus-within:border-blue-400 dark:focus-within:border-neutral-500 transition-colors">
@@ -53,7 +53,7 @@ export default function MockupIndex() {
                         type="text"
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
-                        placeholder="Search mockups..."
+                        placeholder="Search prototypes..."
                         className="flex-1 text-sm text-gray-700 dark:text-neutral-200 outline-none placeholder:text-gray-400 dark:placeholder:text-neutral-600 bg-transparent"
                     />
                     {query && (
@@ -95,7 +95,7 @@ export default function MockupIndex() {
                         })}
                     </div>
                 ) : (
-                    <p className="text-sm text-gray-400 dark:text-neutral-600">No mockups match &ldquo;{query}&rdquo;.</p>
+                    <p className="text-sm text-gray-400 dark:text-neutral-600">No prototypes match &ldquo;{query}&rdquo;.</p>
                 )}
             </div>
         </div>

@@ -1,10 +1,10 @@
 import { Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useParams, Link } from 'react-router-dom'
-import { registry } from './mockups/_registry'
-import MockupIndex from './pages/MockupIndex'
+import { registry } from './prototypes/_registry'
+import PrototypeIndex from './pages/PrototypeIndex'
 import { Loader2, ArrowLeft } from 'lucide-react'
 
-function MockupRoute() {
+function PrototypeRoute() {
   const { slug, version } = useParams<{ slug: string; version: string }>()
   const entry = registry.find((m) => m.slug === slug)
   if (!entry) return <Navigate to="/" replace />
@@ -30,11 +30,11 @@ function MockupRoute() {
       <div className="group fixed bottom-4 left-4 z-50 flex items-center gap-1 bg-black/10 hover:bg-white hover:shadow-lg rounded-full px-2 py-1.5 transition-all duration-200 hover:px-3">
         <Link
           to="/"
-          title="All Mockups"
+          title="All Prototypes"
           className="flex items-center gap-1.5 text-white/60 group-hover:text-gray-500 hover:!text-gray-900 transition-colors"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
-          <span className="text-xs font-medium hidden group-hover:inline">All Mockups</span>
+          <span className="text-xs font-medium hidden group-hover:inline">All Prototypes</span>
         </Link>
         {entry.versions.length > 1 && (
           <>
@@ -45,8 +45,8 @@ function MockupRoute() {
                   key={v}
                   to={`/${slug}/${v}`}
                   className={`px-2 py-0.5 rounded-full text-xs font-medium transition-colors ${v === version
-                      ? 'bg-blue-50 text-blue-600'
-                      : 'text-gray-400 hover:text-gray-700 hover:bg-gray-100'
+                    ? 'bg-blue-50 text-blue-600'
+                    : 'text-gray-400 hover:text-gray-700 hover:bg-gray-100'
                     }`}
                 >
                   {label ?? v.toUpperCase()}
@@ -74,11 +74,11 @@ function MockupRoute() {
 
 export default function App() {
   return (
-    <BrowserRouter basename="/mockups">
+    <BrowserRouter basename="/prototypes">
       <Routes>
-        <Route path="/" element={<MockupIndex />} />
-        <Route path="/:slug" element={<MockupRoute />} />
-        <Route path="/:slug/:version" element={<MockupRoute />} />
+        <Route path="/" element={<PrototypeIndex />} />
+        <Route path="/:slug" element={<PrototypeRoute />} />
+        <Route path="/:slug/:version" element={<PrototypeRoute />} />
       </Routes>
     </BrowserRouter>
   )
