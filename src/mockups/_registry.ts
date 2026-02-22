@@ -26,6 +26,17 @@ export const registry: MockupEntry[] = [
         ],
     },
     {
+        slug: 'bi-evalset-editor',
+        name: 'Evalset Editor',
+        description: 'An evalset editor for WSO2 Integrator: BI',
+        versions: [
+            {
+                version: 'v1',
+                component: lazy(() => import('./bi-evalset-editor/index')),
+            },
+        ],
+    },
+    {
         slug: 'bi-chat-agent-logs',
         name: 'Chat Agent Logs',
         description: 'Revamped chat agent logs view for WSO2 Integrator: BI',
