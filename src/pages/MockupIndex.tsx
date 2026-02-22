@@ -40,24 +40,34 @@ export default function MockupIndex() {
 
                 {filtered.length > 0 ? (
                     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                        {filtered.map(({ slug, name, description }) => (
-                            <Link
-                                key={slug}
-                                to={`/${slug}`}
-                                className="group flex flex-col justify-between bg-white rounded-xl border border-gray-200 p-5 hover:border-blue-400 hover:shadow-md transition-all duration-150"
-                            >
-                                <div>
-                                    <div className="flex items-start justify-between gap-2">
-                                        <h2 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
-                                            {name}
-                                        </h2>
-                                        <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-blue-400 shrink-0 mt-0.5 transition-colors" />
+                        {filtered.map(({ slug, name, description, versions }) => {
+                            const latest = versions[versions.length - 1].version
+                            return (
+                                <Link
+                                    key={slug}
+                                    to={`/${slug}/${latest}`}
+                                    className="group flex flex-col justify-between bg-white rounded-xl border border-gray-200 p-5 hover:border-blue-400 hover:shadow-md transition-all duration-150"
+                                >
+                                    <div>
+                                        <div className="flex items-start justify-between gap-2">
+                                            <h2 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
+                                                {name}
+                                            </h2>
+                                            <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-blue-400 shrink-0 mt-0.5 transition-colors" />
+                                        </div>
+                                        <p className="text-sm text-gray-500 mt-1">{description}</p>
                                     </div>
-                                    <p className="text-sm text-gray-500 mt-1">{description}</p>
-                                </div>
-                                <p className="text-xs text-gray-300 font-mono mt-4">{slug}</p>
-                            </Link>
-                        ))}
+                                    <div className="flex items-center justify-between mt-4">
+                                        <p className="text-xs text-gray-300 font-mono">{slug}</p>
+                                        {versions.length > 1 && (
+                                            <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
+                                                {versions.length} versions
+                                            </span>
+                                        )}
+                                    </div>
+                                </Link>
+                            )
+                        })}
                     </div>
                 ) : (
                     <p className="text-sm text-gray-400">No mockups match &ldquo;{query}&rdquo;.</p>

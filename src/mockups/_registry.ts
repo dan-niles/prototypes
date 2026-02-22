@@ -1,10 +1,16 @@
 import { lazy, type ComponentType } from 'react'
 
+export interface MockupVersion {
+    version: string
+    label?: string
+    component: React.LazyExoticComponent<ComponentType>
+}
+
 export interface MockupEntry {
     slug: string
     name: string
     description: string
-    component: React.LazyExoticComponent<ComponentType>
+    versions: MockupVersion[]
 }
 
 export const registry: MockupEntry[] = [
@@ -12,6 +18,11 @@ export const registry: MockupEntry[] = [
         slug: 'bi-data-tree',
         name: 'Data Tree',
         description: 'A data tree for the expression editor in WSO2 Integrator: BI',
-        component: lazy(() => import('./bi-data-tree/index')),
+        versions: [
+            {
+                version: 'v1',
+                component: lazy(() => import('./bi-data-tree/index')),
+            },
+        ],
     },
 ]
