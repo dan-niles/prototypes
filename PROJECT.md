@@ -178,6 +178,26 @@ Files from Next.js-based tools (v0, shadcn CLI) include `"use client"` at the to
 
 shadcn components use CSS variables like `--background`, `--foreground`, `--muted`, etc. If a pasted mockup looks unstyled, you may need to add a shadcn theme block to that mockup's CSS or inline it into `index.css`. See the [shadcn theming docs](https://ui.shadcn.com/docs/theming) for the full variable list.
 
+### Cleaning up unused ui components
+
+AI tools tend to dump the full shadcn component library into `components/ui/` even though most mockups only use a handful of them. `scripts/cleanup-ui.sh` finds and optionally deletes the unused ones.
+
+```bash
+# Dry run — all mockups
+bash scripts/cleanup-ui.sh
+
+# Dry run — one mockup
+bash scripts/cleanup-ui.sh bi-evalset-editor
+
+# Delete unused files — all mockups
+bash scripts/cleanup-ui.sh --delete
+
+# Delete unused files — one mockup
+bash scripts/cleanup-ui.sh bi-evalset-editor --delete
+```
+
+The script scans each mockup's non-ui source files for imports of the form `from "…/ui/<component>"`. Any ui file that is never imported is considered unused. `utils.ts` and `use-mobile.ts` are always kept since they're helpers rather than components.
+
 ---
 
 ## Dark Mode
