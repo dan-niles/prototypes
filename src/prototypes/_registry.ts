@@ -15,6 +15,21 @@ export interface PrototypeEntry {
 
 export const registry: PrototypeEntry[] = [
     {
+        slug: 'bi-prompt-enhancer',
+        name: 'Prompt Enhancer',
+        description: 'An prompt enhancer for WSO2 Integrator: BI',
+        versions: [
+            {
+                version: 'v1',
+                component: lazy(() => import('./bi-prompt-enhancer/v1/index')),
+            },
+            {
+                version: 'v2',
+                component: lazy(() => import('./bi-prompt-enhancer/v2/index')),
+            },
+        ],
+    },
+    {
         slug: 'bi-function-inputs',
         name: 'Function Inputs',
         description: 'A function inputs view for the flow diagram in WSO2 Integrator: BI',
