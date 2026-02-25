@@ -17,7 +17,7 @@ export const registry: PrototypeEntry[] = [
     {
         slug: 'bi-prompt-enhancer',
         name: 'Prompt Enhancer',
-        description: 'An prompt enhancer for WSO2 Integrator: BI',
+        description: 'A prompt enhancer for WSO2 Integrator: BI',
         versions: [
             {
                 version: 'v1',
