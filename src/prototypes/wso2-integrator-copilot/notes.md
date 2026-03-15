@@ -1,12 +1,17 @@
-# WSO2 Integrator Copilot — UI Improvements
+# WSO2 Integrator Copilot — UI Unification
 
-A walkthrough of the proposed UX changes for the Copilot panel.
+A walkthrough of the proposed UI/UX changes for the Copilot panel in BI and MI.
 
 ---
 
 ## 1. Welcome Screen
 
-The welcome screen now leads with **value** instead of a disclaimer. The original text warned users that AI can make mistakes — the new copy communicates what the tool helps you do.
+The welcome screen now leads with **value** instead of a disclaimer. The original text warned users that AI can make mistakes — the new copy communicates what the tool helps you do. 
+
+Note: We can reuse the original icons currently used in BI; this prototype uses `lucide-react` icons as placeholders.
+
+![Current Welcome Screen](img/copilot-welcome-screen.png#width=270)
+![Proposed Welcome Screen](img/new-copilot-welcome-screen.png#width=280)
 
 [View welcome screen](#action-empty)
 
@@ -60,7 +65,7 @@ After generation completes, a diff-style card shows what was changed with Keep/D
 
 ## 7. Contextual Suggestions
 
-Suggested prompts are now **card-style chips** instead of plain blue links — more discoverable and intentional.
+Suggested prompts are now **card-style chips** instead of plain blue links — more discoverable and intentional. Maybe in the future, we can show suggestions based on the user's project.
 
 [View suggestions](#action-empty)
 

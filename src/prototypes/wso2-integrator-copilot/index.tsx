@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef, useCallback, type ComponentPropsWithoutRef } from 'react';
+import { useState, useEffect, useRef, useCallback, Children, isValidElement, type ComponentPropsWithoutRef, type ReactNode } from 'react';
 import ReactMarkdown from 'react-markdown';
 import notesContent from './notes.md?raw';
+const noteImages = import.meta.glob('./img/*.*', { eager: true, import: 'default' }) as Record<string, string>;
 import {
     Settings,
     ListX,
@@ -41,6 +42,7 @@ export default function WSO2CopilotPrototype() {
     const [showSlashMenu, setShowSlashMenu] = useState(false);
     const [slashMenuIndex, setSlashMenuIndex] = useState(0);
     const [activeCommand, setActiveCommand] = useState<{ name: string; icon: React.ComponentType<any> } | null>(null);
+    const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const slashMenuRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
@@ -105,12 +107,39 @@ export default function WSO2CopilotPrototype() {
                         components={{
                             h1: (props: ComponentPropsWithoutRef<'h1'>) => <h1 className="text-2xl font-bold text-gray-900 mb-2" {...props} />,
                             h2: (props: ComponentPropsWithoutRef<'h2'>) => <h2 className="text-lg font-semibold text-gray-900 mt-8 mb-3" {...props} />,
-                            p: (props: ComponentPropsWithoutRef<'p'>) => <p className="text-[14px] text-gray-600 leading-relaxed mb-3" {...props} />,
+                            p: ({ children }: ComponentPropsWithoutRef<'p'>) => {
+                                const kids = Children.toArray(children as ReactNode);
+                                const nonWhitespace = kids.filter((child) => !(typeof child === 'string' && !child.trim()));
+                                const allImages = nonWhitespace.length > 0 && nonWhitespace.every(
+                                    (child) => isValidElement(child) && (child.props as any)?.src !== undefined
+                                );
+                                if (allImages) {
+                                    return <div className={`flex flex-wrap gap-4 mb-3 ${nonWhitespace.length > 1 ? 'items-start' : ''}`}>{children}</div>;
+                                }
+                                return <p className="text-[14px] text-gray-600 leading-relaxed mb-3">{children}</p>;
+                            },
                             hr: (props: ComponentPropsWithoutRef<'hr'>) => <hr className="border-gray-100 my-6" {...props} />,
                             ul: (props: ComponentPropsWithoutRef<'ul'>) => <ul className="list-disc pl-5 text-[14px] text-gray-600 space-y-1 mb-3" {...props} />,
                             li: (props: ComponentPropsWithoutRef<'li'>) => <li className="leading-relaxed" {...props} />,
                             strong: (props: ComponentPropsWithoutRef<'strong'>) => <strong className="text-gray-800 font-semibold" {...props} />,
                             code: (props: ComponentPropsWithoutRef<'code'>) => <code className="bg-gray-100 px-1.5 py-0.5 rounded text-[13px] text-gray-700" {...props} />,
+                            img: ({ src, alt }: ComponentPropsWithoutRef<'img'>) => {
+                                const [path, hash] = (src || '').split('#');
+                                const width = hash?.match(/width=(\d+)/)?.[1];
+                                const resolved = (path ? noteImages[`./${path}`] : undefined) || path;
+                                return (
+                                    <figure className="my-3">
+                                        <img
+                                            src={resolved}
+                                            alt={alt}
+                                            style={width ? { width: `${width}px` } : undefined}
+                                            className="rounded-lg border border-gray-200 shadow-sm max-w-full cursor-zoom-in hover:shadow-md transition-shadow"
+                                            onClick={() => setLightboxSrc(resolved || '')}
+                                        />
+                                        {alt && <figcaption className="text-[12px] text-gray-400 mt-1 italic text-center" style={width ? { width: `${width}px` } : undefined}>{alt}</figcaption>}
+                                    </figure>
+                                );
+                            },
                             a: ({ href, children }: ComponentPropsWithoutRef<'a'>) => {
                                 if (href?.startsWith('#action-')) {
                                     return (
@@ -161,8 +190,8 @@ export default function WSO2CopilotPrototype() {
                         /* --- EMPTY STATE --- */
                         <div className="flex-1 flex flex-col items-center justify-center space-y-5 animate-in fade-in duration-300">
                             <div className="flex flex-col items-center">
-                                <Bot size={52} className="text-gray-800 mb-4" strokeWidth={1.75} />
-                                <h1 className="text-xl font-bold text-gray-900 mb-2">WSO2 Integrator Copilot</h1>
+                                <Bot size={52} className="text-gray-800 mb-2" strokeWidth={1.75} />
+                                <h1 className="text-xl font-bold text-gray-900 mb-4">WSO2 Integrator Copilot</h1>
                                 <p className="text-[13px] text-gray-600 max-w-[340px] leading-relaxed">
                                     Build integrations faster with AI.
                                     Describe your requirements in plain language and get working implementations instantly.
@@ -611,6 +640,26 @@ export default function WSO2CopilotPrototype() {
                     </div>
                 </div>
             </div>
+
+            {/* Lightbox */}
+            {lightboxSrc && (
+                <div
+                    className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center cursor-zoom-out animate-in fade-in duration-150"
+                    onClick={() => setLightboxSrc(null)}
+                >
+                    <button
+                        onClick={() => setLightboxSrc(null)}
+                        className="absolute top-4 right-4 p-2 text-white/70 hover:text-white transition-colors"
+                    >
+                        <X size={24} strokeWidth={2} />
+                    </button>
+                    <img
+                        src={lightboxSrc}
+                        className="max-w-[90vw] max-h-[90vh] rounded-lg shadow-2xl animate-in zoom-in-95 duration-200"
+                        onClick={(e) => e.stopPropagation()}
+                    />
+                </div>
+            )}
         </div>
     );
 }
