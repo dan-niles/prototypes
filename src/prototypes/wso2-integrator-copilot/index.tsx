@@ -9,7 +9,7 @@ export default function WSO2CopilotPrototype() {
     const [slashMenuIndex, setSlashMenuIndex] = useState(0);
 
     const handleStartGeneration = () => {
-        setChatState('generating');
+        setChatState(inputMode === 'plan' ? 'plan-generating' : 'generating');
     };
 
     const handleReset = () => {
@@ -26,6 +26,10 @@ export default function WSO2CopilotPrototype() {
             case 'slashMenu': handleReset(); setShowSlashMenu(true); setSlashMenuIndex(0); break;
             case 'planMode': setInputMode('plan'); break;
             case 'buildMode': setInputMode('build'); break;
+            case 'planReview': setChatState('plan-review'); break;
+            case 'planRevised': setChatState('plan-revised'); break;
+            case 'planBuilding': setChatState('plan-building-1'); break;
+            case 'planComplete': setChatState('plan-complete'); break;
         }
     };
 

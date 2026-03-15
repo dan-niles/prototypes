@@ -26,7 +26,8 @@ import {
     BookOpen,
     X,
     RotateCcw,
-    Plug
+    Plug,
+    MoreHorizontal
 } from 'lucide-react';
 
 const slashCommands = [
@@ -66,6 +67,10 @@ export default function CopilotPanel({
     const [isChangesExpanded, setIsChangesExpanded] = useState(false);
     const [inputValue, setInputValue] = useState('');
     const [activeCommand, setActiveCommand] = useState<{ name: string; icon: React.ComponentType<any> } | null>(null);
+    const [expandedTasks, setExpandedTasks] = useState<Set<number>>(new Set());
+    const [isPlanTasksExpanded, setIsPlanTasksExpanded] = useState(true);
+    const [isPlanApprovedExpanded, setIsPlanApprovedExpanded] = useState(false);
+    const isExecuting = ['generating', 'plan-generating', 'plan-revising', 'plan-building-1', 'plan-building-2'].includes(chatState);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const slashMenuRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
@@ -76,6 +81,22 @@ export default function CopilotPanel({
     useEffect(() => {
         if (chatState === 'generating') {
             const timer = setTimeout(() => setChatState('review'), 3500);
+            return () => clearTimeout(timer);
+        }
+        if (chatState === 'plan-generating') {
+            const timer = setTimeout(() => setChatState('plan-review'), 2000);
+            return () => clearTimeout(timer);
+        }
+        if (chatState === 'plan-revising') {
+            const timer = setTimeout(() => setChatState('plan-revised'), 1500);
+            return () => clearTimeout(timer);
+        }
+        if (chatState === 'plan-building-1') {
+            const timer = setTimeout(() => setChatState('plan-building-2'), 2500);
+            return () => clearTimeout(timer);
+        }
+        if (chatState === 'plan-building-2') {
+            const timer = setTimeout(() => setChatState('plan-complete'), 2500);
             return () => clearTimeout(timer);
         }
     }, [chatState, setChatState]);
@@ -134,7 +155,173 @@ export default function CopilotPanel({
                             </p>
                         </div>
                     </div>
+                ) : isPlanState(chatState) ? (
+                    /* --- PLAN MODE FLOW --- */
+                    <div className="space-y-5 animate-in fade-in duration-300">
+                        {/* Checkpoint Indicator */}
+                        <div className="flex items-center gap-2 text-[12px] text-gray-400 px-1">
+                            <CheckCircle2 size={13} strokeWidth={2} className="text-green-500" />
+                            <span>Checkpoint saved</span>
+                            <button
+                                onClick={handleReset}
+                                className="cursor-pointer group/restore flex items-center gap-1 px-1.5 py-0.5 rounded text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-all"
+                            >
+                                <RotateCcw size={11} strokeWidth={2.5} />
+                                <span className="max-w-0 overflow-hidden group-hover/restore:max-w-[60px] transition-all duration-200 whitespace-nowrap">Restore</span>
+                            </button>
+                        </div>
+
+                        {/* User Message */}
+                        <div className="flex justify-end">
+                            <div className="bg-[#E2E8F0]/60 text-gray-800 text-[13px] px-4 py-2.5 rounded-xl rounded-tr-sm max-w-[85%]">
+                                write a hello world http service
+                            </div>
+                        </div>
+
+                        {/* AI Plan Response */}
+                        <div className="text-[13px] text-gray-800 space-y-4 leading-relaxed">
+                            <p>
+                                I'll help you create a hello world HTTP service. Let me break this down into a simple plan.
+                            </p>
+
+                            <div>
+                                <strong className="text-gray-900 text-[14px]">High-Level Design</strong>
+                                <p className="mt-1">
+                                    I'll create a basic HTTP service with a single resource function that returns
+                                    "Hello, World!" when accessed via a GET request.
+                                </p>
+                            </div>
+
+                            <div>
+                                <strong className="text-gray-900 text-[14px]">Implementation Plan</strong>
+                                <p className="mt-1">Let me create the tasks for this implementation:</p>
+                            </div>
+
+                            {/* Initial Tasks Card — shown in plan-review only (before any revision) */}
+                            {chatState === 'plan-review' && (
+                                <PlanTasksCard
+                                    title="Plan"
+                                    expanded={isPlanTasksExpanded}
+                                    onToggle={() => setIsPlanTasksExpanded(!isPlanTasksExpanded)}
+                                    tasks={[
+                                        'Create HTTP service with hello world resource function',
+                                        'Implement the hello world resource function logic',
+                                    ]}
+                                />
+                            )}
+
+                            {/* Plan revised collapsed card — shown after revision */}
+                            {(chatState === 'plan-revising' || chatState === 'plan-revised') && (
+                                <div className="border border-gray-200 rounded-lg overflow-hidden animate-in fade-in duration-300">
+                                    <button className="flex items-center gap-2 w-full p-3 text-gray-500">
+                                        <ChevronRight size={14} />
+                                        <span className="font-medium">Plan revised</span>
+                                        <span className="text-gray-300 text-[12px]">— Can you make it say hello universe instead?</span>
+                                    </button>
+                                </div>
+                            )}
+
+                            {/* Revised plan response + new tasks */}
+                            {chatState === 'plan-revised' && (
+                                <div className="space-y-4 animate-in fade-in duration-300">
+                                    <p>I'll update the plan to return "Hello, Universe!" instead:</p>
+                                    <PlanTasksCard
+                                        title="Plan"
+                                        expanded={isPlanTasksExpanded}
+                                        onToggle={() => setIsPlanTasksExpanded(!isPlanTasksExpanded)}
+                                        tasks={[
+                                            'Create HTTP service with hello universe resource function',
+                                        ]}
+                                    />
+                                </div>
+                            )}
+
+                            {/* Plan approved card — shown during building/complete */}
+                            {(chatState === 'plan-building-1' || chatState === 'plan-building-2' || chatState === 'plan-complete') && (
+                                <PlanTasksCard
+                                    title="Plan approved"
+                                    muted
+                                    expanded={isPlanApprovedExpanded}
+                                    onToggle={() => setIsPlanApprovedExpanded(!isPlanApprovedExpanded)}
+                                    tasks={[
+                                        'Create HTTP service with hello world resource function',
+                                        'Implement the hello world resource function logic',
+                                    ]}
+                                />
+                            )}
+
+                            {/* After plan approved — execution flow */}
+                            {(chatState === 'plan-building-1' || chatState === 'plan-building-2' || chatState === 'plan-complete') && (
+                                <div className="space-y-3 animate-in fade-in duration-300">
+                                    <p>
+                                        Perfect! The plan is approved. Let me start implementing the hello world HTTP service.
+                                    </p>
+
+                                    {/* Task 1 */}
+                                    <PlanTask
+                                        index={0}
+                                        label="Create HTTP service with hello world resource function"
+                                        status={chatState === 'plan-building-1' ? 'active' : 'done'}
+                                        expanded={chatState === 'plan-building-1' || expandedTasks.has(0)}
+                                        onToggle={() => setExpandedTasks((prev) => {
+                                            const next = new Set(prev);
+                                            next.has(0) ? next.delete(0) : next.add(0);
+                                            return next;
+                                        })}
+                                        toolCalls={[
+                                            { icon: FilePen, text: <>Created <span className="font-medium text-gray-500">service.bal</span></> },
+                                            { icon: CircleCheck, text: 'No issues found' },
+                                        ]}
+                                    />
+
+                                    {/* Task 2 */}
+                                    {(chatState === 'plan-building-2' || chatState === 'plan-complete') && (
+                                        <PlanTask
+                                            index={1}
+                                            label="Implement the hello world resource function logic"
+                                            status={chatState === 'plan-building-2' ? 'active' : 'done'}
+                                            expanded={chatState === 'plan-building-2' || expandedTasks.has(1)}
+                                            onToggle={() => setExpandedTasks((prev) => {
+                                                const next = new Set(prev);
+                                                next.has(1) ? next.delete(1) : next.add(1);
+                                                return next;
+                                            })}
+                                            toolCalls={[
+                                                { icon: FilePen, text: <>Updated <span className="font-medium text-gray-500">service.bal</span></> },
+                                                { icon: CircleCheck, text: 'No issues found' },
+                                            ]}
+                                        />
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Plan complete — summary + changes card */}
+                            {chatState === 'plan-complete' && (
+                                <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                                    <p>
+                                        Perfect! I've successfully created a hello world HTTP service for you.
+                                        The service is now available at <code className="bg-gray-100 px-1 py-0.5 rounded text-[12px]">http://localhost:9090/hello/world</code> and
+                                        will return "Hello, World!" when you make a GET request to it.
+                                    </p>
+
+                                    <div className="border border-gray-200 rounded-lg p-3 shadow-sm bg-white">
+                                        <div className="font-semibold text-gray-900 mb-2">Changes ready to review</div>
+                                        <DiffTree />
+                                        <div className="flex justify-end gap-2 mt-4">
+                                            <button onClick={handleReset} className="px-4 py-1.5 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md font-medium transition-colors">
+                                                Discard
+                                            </button>
+                                            <button onClick={() => setChatState('accepted')} className="px-4 py-1.5 text-white bg-blue-600 hover:bg-blue-700 rounded-md font-medium transition-colors">
+                                                ✓ Keep
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
                 ) : (
+                    /* --- BUILD MODE FLOW --- */
                     <div className="space-y-5 animate-in fade-in duration-300">
                         {/* Checkpoint Indicator */}
                         <div className="flex items-center gap-2 text-[12px] text-gray-400 px-1">
@@ -281,6 +468,38 @@ export default function CopilotPanel({
 
             {/* Bottom Input Area */}
             <div className="p-4 px-5 pb-6 shrink-0 bg-white border-t border-gray-50">
+
+                {/* Plan Review Actions */}
+                {(chatState === 'plan-review' || chatState === 'plan-revised') && (
+                    <div className="space-y-2.5 mb-0">
+                        <p className="text-[13px] text-gray-700 font-medium">Does this plan look right?</p>
+                        <button
+                            onClick={() => setChatState('plan-building-1')}
+                            className="w-full py-2.5 text-white bg-blue-600 hover:bg-blue-700 rounded-lg font-medium transition-colors text-[13px]"
+                        >
+                            Start building
+                        </button>
+                        <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition-all">
+                            <input
+                                type="text"
+                                placeholder="What should be different?"
+                                className="flex-1 px-3 py-2.5 text-[13px] text-gray-900 outline-none placeholder:text-gray-400"
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        setChatState('plan-revising');
+                                    }
+                                }}
+                            />
+                            <button
+                                onClick={() => setChatState('plan-revising')}
+                                className="px-3 py-2.5 text-gray-300 hover:text-gray-500 transition-colors"
+                            >
+                                <Send size={16} strokeWidth={1.5} />
+                            </button>
+                        </div>
+                    </div>
+                )}
+
                 {/* Suggested Prompts */}
                 {chatState === 'empty' && (
                     <div className="flex flex-wrap gap-2 mb-3">
@@ -299,10 +518,16 @@ export default function CopilotPanel({
                 )}
 
                 {/* Generating Indicator */}
-                {chatState === 'generating' && (
+                {(chatState === 'generating' || chatState === 'plan-generating' || chatState === 'plan-revising' || chatState === 'plan-building-1' || chatState === 'plan-building-2') && (
                     <div
                         className="flex items-center gap-1 mb-3 ml-2 text-gray-500 text-[13px] cursor-pointer"
-                        onClick={() => setChatState('review')}
+                        onClick={() => {
+                            if (chatState === 'generating') setChatState('review');
+                            else if (chatState === 'plan-generating') setChatState('plan-review');
+                            else if (chatState === 'plan-revising') setChatState('plan-revised');
+                            else if (chatState === 'plan-building-1') setChatState('plan-building-2');
+                            else if (chatState === 'plan-building-2') setChatState('plan-complete');
+                        }}
                     >
                         <div className="flex gap-1">
                             <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
@@ -313,8 +538,8 @@ export default function CopilotPanel({
                     </div>
                 )}
 
-                {/* Chat Input Container */}
-                <div className="relative border border-gray-300 rounded-xl shadow-sm flex flex-col bg-white focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition-all">
+                {/* Chat Input Container — hidden during plan-review/revised which have their own bottom */}
+                {chatState !== 'plan-review' && chatState !== 'plan-revised' && <div className="relative border border-gray-300 rounded-xl shadow-sm flex flex-col bg-white focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition-all">
                     {/* Slash Command Menu */}
                     {showSlashMenu && (
                         <>
@@ -433,7 +658,7 @@ export default function CopilotPanel({
 
                     {/* Bottom Toolbar */}
                     <div className="flex justify-between items-center px-2 pb-2 mt-1">
-                        <div className="flex bg-gray-100 rounded-[6px] p-0.5 border border-gray-200/50">
+                        <div className={`flex bg-gray-100 rounded-[6px] p-0.5 border border-gray-200/50 ${isExecuting ? 'opacity-50 pointer-events-none' : ''}`}>
                             <button
                                 onClick={() => setInputMode('build')}
                                 className={`flex items-center gap-1.5 px-3 py-1 rounded-[4px] text-[12px] font-medium transition-all ${inputMode === 'build' ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
@@ -464,8 +689,12 @@ export default function CopilotPanel({
 
                             <div className="w-px h-4 bg-gray-200 mx-1"></div>
 
-                            {chatState === 'generating' ? (
-                                <button onClick={() => setChatState('review')} className="w-[28px] h-[28px] flex items-center justify-center text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors">
+                            {(chatState === 'generating' || chatState === 'plan-generating' || chatState === 'plan-building-1' || chatState === 'plan-building-2') ? (
+                                <button onClick={() => {
+                                    if (chatState === 'generating') setChatState('review');
+                                    else if (chatState === 'plan-generating') setChatState('plan-review');
+                                    else setChatState('plan-complete');
+                                }} className="w-[28px] h-[28px] flex items-center justify-center text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors">
                                     <StopCircle size={18} strokeWidth={1.5} />
                                 </button>
                             ) : (
@@ -482,7 +711,94 @@ export default function CopilotPanel({
                             )}
                         </div>
                     </div>
+                </div>}
+            </div>
+        </div>
+    );
+}
+
+function isPlanState(state: string) {
+    return state.startsWith('plan-');
+}
+
+/** Reusable expandable tasks card for plan review/approved states */
+function PlanTasksCard({ title, tasks, expanded, onToggle, muted = false }: {
+    title: string;
+    tasks: string[];
+    expanded: boolean;
+    onToggle: () => void;
+    muted?: boolean;
+}) {
+    return (
+        <div className="border border-gray-200 rounded-lg overflow-hidden animate-in fade-in duration-300">
+            <button
+                onClick={onToggle}
+                className={`flex items-center gap-2 w-full p-3 hover:bg-gray-50 transition-colors ${muted ? 'text-gray-500' : 'text-gray-700'}`}
+            >
+                {expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                <span className="font-medium">{title}</span>
+                <span className={`text-[12px] ${muted ? 'text-gray-300' : 'text-gray-400'}`}>· {tasks.length} {tasks.length === 1 ? 'Task' : 'Tasks'}</span>
+            </button>
+            {expanded && (
+                <div className={`px-3 pb-3 ${muted ? 'border-t border-gray-100' : ''}`}>
+                    <ul className={`space-y-2 pl-2 ${muted ? 'mt-2' : ''}`}>
+                        {tasks.map((task, i) => (
+                            <li key={i} className={`flex items-center gap-2.5 ${muted ? 'text-gray-500' : ''}`}>
+                                <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${muted ? 'bg-gray-300' : 'bg-blue-500'}`}></span>
+                                <span>{task}</span>
+                            </li>
+                        ))}
+                    </ul>
                 </div>
+            )}
+        </div>
+    );
+}
+
+/** Task item in plan execution with expandable tool calls */
+function PlanTask({ label, status, expanded, onToggle, toolCalls }: {
+    index: number;
+    label: string;
+    status: 'active' | 'done';
+    expanded: boolean;
+    onToggle: () => void;
+    toolCalls: { icon: React.ComponentType<any>; text: React.ReactNode }[];
+}) {
+    return (
+        <div className="flex items-start gap-2.5">
+            <div className="shrink-0 flex items-center justify-center h-[20px] w-3">
+                {status === 'active' ? (
+                    <div className="w-3 h-3 rounded-full border-2 border-blue-400 flex items-center justify-center animate-pulse">
+                        <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                    </div>
+                ) : (
+                    <span className="w-2 h-2 rounded-full bg-green-500 block"></span>
+                )}
+            </div>
+            <div className="flex-1">
+                <div
+                    className={`flex items-center gap-2 ${status === 'done' ? 'cursor-pointer' : ''}`}
+                    onClick={status === 'done' ? onToggle : undefined}
+                >
+                    <span className={status === 'active' ? 'text-gray-800 font-medium' : 'text-gray-400'}>
+                        {label}
+                    </span>
+                    {status === 'done' && (
+                        <span className="text-gray-300">
+                            <MoreHorizontal size={14} />
+                        </span>
+                    )}
+                </div>
+                {expanded && (
+                    <div className="mt-2 ml-1 border-l-2 border-gray-200 pl-3 space-y-1.5 text-gray-400 text-[12.5px] animate-in fade-in duration-200">
+                        {toolCalls.map((call, i) => (
+                            <div key={i} className="flex items-center gap-2">
+                                <call.icon size={13} strokeWidth={2} />
+                                <span>{call.text}</span>
+                            </div>
+                        ))}
+                    </div>
+                )}
             </div>
         </div>
     );
