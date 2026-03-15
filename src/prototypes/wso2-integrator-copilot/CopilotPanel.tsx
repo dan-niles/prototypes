@@ -436,13 +436,13 @@ export default function CopilotPanel({
                                             {isChangesExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
                                             <span className="font-medium">Changes accepted</span>
                                         </button>
-                                        {isChangesExpanded && (
+                                        <Collapse open={isChangesExpanded}>
                                             <div className="p-3 pt-0 border-t border-gray-100 bg-gray-50/50">
                                                 <div className="mt-2">
                                                     <DiffTree />
                                                 </div>
                                             </div>
-                                        )}
+                                        </Collapse>
                                     </div>
 
                                     {/* Feedback Widget */}
@@ -721,6 +721,18 @@ function isPlanState(state: string) {
     return state.startsWith('plan-');
 }
 
+/** Smooth height animation wrapper using CSS grid trick */
+function Collapse({ open, children }: { open: boolean; children: React.ReactNode }) {
+    return (
+        <div
+            className="grid transition-[grid-template-rows] duration-200 ease-out"
+            style={{ gridTemplateRows: open ? '1fr' : '0fr' }}
+        >
+            <div className="overflow-hidden">{children}</div>
+        </div>
+    );
+}
+
 /** Reusable expandable tasks card for plan review/approved states */
 function PlanTasksCard({ title, tasks, expanded, onToggle, muted = false }: {
     title: string;
@@ -739,7 +751,7 @@ function PlanTasksCard({ title, tasks, expanded, onToggle, muted = false }: {
                 <span className="font-medium">{title}</span>
                 <span className={`text-[12px] ${muted ? 'text-gray-300' : 'text-gray-400'}`}>· {tasks.length} {tasks.length === 1 ? 'Task' : 'Tasks'}</span>
             </button>
-            {expanded && (
+            <Collapse open={expanded}>
                 <div className={`px-3 pb-3 ${muted ? 'border-t border-gray-100' : ''}`}>
                     <ul className={`space-y-2 pl-2 ${muted ? 'mt-2' : ''}`}>
                         {tasks.map((task, i) => (
@@ -750,7 +762,7 @@ function PlanTasksCard({ title, tasks, expanded, onToggle, muted = false }: {
                         ))}
                     </ul>
                 </div>
-            )}
+            </Collapse>
         </div>
     );
 }
@@ -789,8 +801,8 @@ function PlanTask({ label, status, expanded, onToggle, toolCalls }: {
                         </span>
                     )}
                 </div>
-                {expanded && (
-                    <div className="mt-2 ml-1 border-l-2 border-gray-200 pl-3 space-y-1.5 text-gray-400 text-[12.5px] animate-in fade-in duration-200">
+                <Collapse open={expanded}>
+                    <div className="mt-2 ml-1 border-l-2 border-gray-200 pl-3 space-y-1.5 text-gray-400 text-[12.5px]">
                         {toolCalls.map((call, i) => (
                             <div key={i} className="flex items-center gap-2">
                                 <call.icon size={13} strokeWidth={2} />
@@ -798,7 +810,7 @@ function PlanTask({ label, status, expanded, onToggle, toolCalls }: {
                             </div>
                         ))}
                     </div>
-                )}
+                </Collapse>
             </div>
         </div>
     );
