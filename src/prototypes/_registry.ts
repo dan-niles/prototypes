@@ -15,6 +15,17 @@ export interface PrototypeEntry {
 
 export const registry: PrototypeEntry[] = [
     {
+        slug: 'wso2-integrator-copilot',
+        name: 'WSO2 Integrator: Copilot',
+        description: 'UI unification for BI and MI Copilot features in WSO2 Integrator',
+        versions: [
+            {
+                version: 'v1',
+                component: lazy(() => import('./wso2-integrator-copilot/index')),
+            },
+        ],
+    },
+    {
         slug: 'bi-prompt-enhancer',
         name: 'Prompt Enhancer',
         description: 'A prompt enhancer for WSO2 Integrator: BI',
