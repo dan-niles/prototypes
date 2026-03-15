@@ -1,20 +1,31 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import {
     Settings,
     ListX,
     Bot,
     FilePlus,
-    Pencil,
+    Hammer,
     LayoutList,
     Send,
-    Wrench,
+    Search,
+    Package,
+    FilePen,
+    CircleCheck,
     ChevronDown,
     ChevronRight,
     ThumbsUp,
     ThumbsDown,
     StopCircle,
     Activity,
-    TerminalSquare
+    CheckCircle2,
+    ArrowRight,
+    Map,
+    Blocks,
+    MessageCircleQuestion,
+    Sparkles,
+    FileJson,
+    BookOpen,
+    X
 } from 'lucide-react';
 
 export default function WSO2CopilotPrototype() {
@@ -23,8 +34,25 @@ export default function WSO2CopilotPrototype() {
     const [isChangesExpanded, setIsChangesExpanded] = useState(false);
     const [inputValue, setInputValue] = useState('');
 
-    // NEW: State for Build vs Plan toggle
     const [inputMode, setInputMode] = useState('build');
+    const [showSlashMenu, setShowSlashMenu] = useState(false);
+    const [slashMenuIndex, setSlashMenuIndex] = useState(0);
+    const [activeCommand, setActiveCommand] = useState<{ name: string; icon: React.ComponentType<any> } | null>(null);
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const slashMenuRefs = useRef<(HTMLButtonElement | null)[]>([]);
+
+    const setSlashMenuRef = useCallback((index: number) => (el: HTMLButtonElement | null) => {
+        slashMenuRefs.current[index] = el;
+    }, []);
+
+    const slashCommands = [
+        { name: '/ask', description: 'Ask a question without editing', icon: MessageCircleQuestion },
+        { name: '/doc', description: 'Generate documentation', icon: BookOpen },
+        { name: '/openapi', description: 'Import OpenAPI specifications', icon: FileJson },
+        { name: '/typecreator', description: 'Create custom types', icon: Blocks },
+        { name: '/datamap', description: 'Generate data mappings', icon: Map },
+        { name: '/natural-programming', description: 'Experimental NL-to-code', icon: Sparkles },
+    ];
 
     // Auto-transition from generating to review for demo purposes
     useEffect(() => {
@@ -43,7 +71,8 @@ export default function WSO2CopilotPrototype() {
         setChatState('empty');
         setIsChangesExpanded(false);
         setInputValue('');
-        setInputMode('build'); // Reset mode too
+        setInputMode('build');
+        setActiveCommand(null);
     };
 
     return (
@@ -63,16 +92,17 @@ export default function WSO2CopilotPrototype() {
             <div className="w-[450px] lg:w-[500px] bg-white flex flex-col shadow-sm z-10">
 
                 {/* Header */}
-                <div className="flex justify-between items-center px-4 py-3 border-b border-gray-100 text-[13px] text-gray-600 shrink-0 bg-white">
-                    <div>Remaining Usage: Unlimited</div>
+                <div className="flex justify-end items-center px-4 py-3 border-b border-gray-100 text-[13px] text-gray-600 shrink-0 bg-white">
                     <div className="flex items-center gap-4">
-                        <button
-                            onClick={handleReset}
-                            className="flex items-center gap-1.5 hover:text-gray-900 transition-colors"
-                        >
-                            <ListX size={15} strokeWidth={1.5} />
-                            <span>Clear</span>
-                        </button>
+                        {chatState !== 'empty' && (
+                            <button
+                                onClick={handleReset}
+                                className="flex items-center gap-1.5 hover:text-gray-900 transition-colors"
+                            >
+                                <ListX size={15} strokeWidth={1.5} />
+                                <span>Clear</span>
+                            </button>
+                        )}
                         <button className="flex items-center gap-1.5 hover:text-gray-900 transition-colors">
                             <Settings size={15} strokeWidth={1.5} />
                             <span>Settings</span>
@@ -90,8 +120,8 @@ export default function WSO2CopilotPrototype() {
                                 <Bot size={52} className="text-gray-800 mb-4" strokeWidth={1.75} />
                                 <h1 className="text-xl font-bold text-gray-900 mb-2">WSO2 Integrator Copilot</h1>
                                 <p className="text-[13px] text-gray-600 max-w-[340px] leading-relaxed">
-                                    WSO2 Integrator Copilot is powered by AI. It can make mistakes.
-                                    Review generated code before adding it to your integration.
+                                    Build integrations faster with AI.
+                                    Describe your requirements in plain language and get working implementations instantly.
                                 </p>
                             </div>
 
@@ -107,14 +137,10 @@ export default function WSO2CopilotPrototype() {
                     ) : (
                         /* --- CHAT FLOW STATE --- */
                         <div className="space-y-5 animate-in fade-in duration-300">
-                            {/* Checkpoint Divider */}
-                            <div className="flex items-center justify-center relative my-2">
-                                <div className="absolute inset-0 flex items-center">
-                                    <div className="w-full border-t border-dashed border-gray-300"></div>
-                                </div>
-                                <div className="relative bg-[#E2E8F0] text-gray-500 text-[12px] px-3 py-1 rounded-md">
-                                    Creating a checkpoint ...
-                                </div>
+                            {/* Checkpoint Indicator */}
+                            <div className="flex items-center gap-2 text-[12px] text-gray-400 px-1">
+                                <CheckCircle2 size={13} strokeWidth={2} className="text-green-500" />
+                                <span>Checkpoint saved</span>
                             </div>
 
                             {/* User Message */}
@@ -132,32 +158,34 @@ export default function WSO2CopilotPrototype() {
                                 </p>
 
                                 {/* Tool Calls */}
-                                <div className="space-y-1.5 text-gray-600">
+                                <div className="space-y-1.5 text-gray-400 text-[12.5px]">
                                     <div className="flex items-center gap-2">
-                                        <Wrench size={14} strokeWidth={2} />
+                                        <Search size={13} strokeWidth={2} />
                                         <span>HTTP service libraries search completed</span>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <Wrench size={14} strokeWidth={2} />
+                                        <Package size={13} strokeWidth={2} />
                                         <span>Fetched: [ballerina/http]</span>
                                     </div>
+                                </div>
 
-                                    {(chatState === 'review' || chatState === 'accepted') && (
-                                        <div className="animate-in fade-in duration-300">
-                                            <div className="mt-3 text-gray-800">
-                                                Now I'll add a simple "Hello World" HTTP service to the existing code:
-                                            </div>
-                                            <div className="flex items-center gap-2 mt-2">
-                                                <Wrench size={14} strokeWidth={2} />
-                                                <span>Updated <span className="font-semibold text-gray-800">main.bal</span></span>
+                                {(chatState === 'review' || chatState === 'accepted') && (
+                                    <div className="animate-in fade-in duration-300 space-y-4">
+                                        <p>
+                                            Now I'll add a simple "Hello World" HTTP service to the existing code:
+                                        </p>
+                                        <div className="space-y-1.5 text-gray-400 text-[12.5px]">
+                                            <div className="flex items-center gap-2">
+                                                <FilePen size={13} strokeWidth={2} />
+                                                <span>Updated <span className="font-medium text-gray-500">main.bal</span></span>
                                             </div>
                                             <div className="flex items-center gap-2">
-                                                <Wrench size={14} strokeWidth={2} />
+                                                <CircleCheck size={13} strokeWidth={2} />
                                                 <span>No issues found</span>
                                             </div>
                                         </div>
-                                    )}
-                                </div>
+                                    </div>
+                                )}
 
                                 {/* Post-Generation Explanation */}
                                 {(chatState === 'review' || chatState === 'accepted') && (
@@ -308,14 +336,16 @@ export default function WSO2CopilotPrototype() {
 
                     {/* Suggested Prompts (Only show in Empty State) */}
                     {chatState === 'empty' && (
-                        <div className="flex flex-col gap-1 mb-3 text-[13px] text-blue-600 font-medium">
+                        <div className="flex flex-wrap gap-2 mb-3">
                             <button
                                 onClick={handleStartGeneration}
-                                className="text-left w-max hover:underline decoration-blue-400 underline-offset-2 transition-all"
+                                className="flex items-center gap-2 px-3 py-2 text-[12.5px] text-gray-600 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 hover:border-gray-300 transition-all"
                             >
+                                <ArrowRight size={13} strokeWidth={2} className="text-gray-400" />
                                 write a hello world http service
                             </button>
-                            <button className="text-left w-max hover:underline decoration-blue-400 underline-offset-2 transition-all">
+                            <button className="flex items-center gap-2 px-3 py-2 text-[12.5px] text-gray-600 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 hover:border-gray-300 transition-all">
+                                <ArrowRight size={13} strokeWidth={2} className="text-gray-400" />
                                 /ask how to write a concurrent application?
                             </button>
                         </div>
@@ -336,23 +366,130 @@ export default function WSO2CopilotPrototype() {
                         </div>
                     )}
 
-                    {/* NEW: Enhanced Chat Input Container */}
-                    <div className="border border-gray-300 rounded-xl shadow-sm flex flex-col bg-white focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition-all">
-                        <textarea
-                            value={inputValue}
-                            onChange={(e) => setInputValue(e.target.value)}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter' && !e.shiftKey) {
-                                    e.preventDefault();
-                                    if (inputValue.trim() || chatState === 'empty') {
-                                        handleStartGeneration();
+                    {/* Enhanced Chat Input Container */}
+                    <div className="relative border border-gray-300 rounded-xl shadow-sm flex flex-col bg-white focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition-all">
+
+                        {/* Slash Command Menu */}
+                        {showSlashMenu && (
+                            <>
+                                <div className="fixed inset-0 z-10" onClick={() => setShowSlashMenu(false)} />
+                                <div className="absolute bottom-full left-0 right-0 mb-2 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-150 z-20">
+                                    <div className="flex items-center justify-between px-3 py-2 border-b border-gray-100">
+                                        <span className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">Commands</span>
+                                        <button
+                                            onClick={() => setShowSlashMenu(false)}
+                                            className="p-0.5 text-gray-400 hover:text-gray-600 rounded transition-colors"
+                                        >
+                                            <X size={13} strokeWidth={2} />
+                                        </button>
+                                    </div>
+                                    <div className="p-1.5 max-h-[240px] overflow-y-auto">
+                                        {slashCommands.map((cmd, index) => {
+                                            const isActive = index === slashMenuIndex;
+                                            return (
+                                                <button
+                                                    key={cmd.name}
+                                                    ref={setSlashMenuRef(index)}
+                                                    onMouseEnter={() => setSlashMenuIndex(index)}
+                                                    onClick={() => {
+                                                        setActiveCommand({ name: cmd.name, icon: cmd.icon });
+                                                        setInputValue('');
+                                                        setShowSlashMenu(false);
+                                                        textareaRef.current?.focus();
+                                                    }}
+                                                    className={`flex items-center gap-3 w-full px-3 py-2 rounded-lg transition-colors text-left ${isActive ? 'bg-blue-50' : ''}`}
+                                                >
+                                                    <div className={`w-7 h-7 rounded-md flex items-center justify-center transition-colors ${isActive ? 'bg-blue-100' : 'bg-gray-100'}`}>
+                                                        <cmd.icon size={14} strokeWidth={2} className={`transition-colors ${isActive ? 'text-blue-600' : 'text-gray-500'}`} />
+                                                    </div>
+                                                    <div className="flex flex-col">
+                                                        <span className={`text-[13px] font-medium transition-colors ${isActive ? 'text-blue-700' : 'text-gray-800'}`}>{cmd.name}</span>
+                                                        <span className="text-[11px] text-gray-400">{cmd.description}</span>
+                                                    </div>
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            </>
+                        )}
+
+                        <div className="flex flex-wrap items-start gap-1.5 px-3 pt-3 min-h-[60px]">
+                            {activeCommand && (
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 border border-blue-200 text-blue-700 text-[12.5px] font-medium rounded-lg shrink-0">
+                                    <activeCommand.icon size={12} strokeWidth={2} />
+                                    {activeCommand.name}
+                                    <button
+                                        onClick={() => {
+                                            setActiveCommand(null);
+                                            textareaRef.current?.focus();
+                                        }}
+                                        className="ml-0.5 text-blue-400 hover:text-blue-600 transition-colors"
+                                    >
+                                        <X size={11} strokeWidth={2.5} />
+                                    </button>
+                                </span>
+                            )}
+                            <textarea
+                                ref={textareaRef}
+                                value={inputValue}
+                                onChange={(e) => {
+                                    const val = e.target.value;
+                                    setInputValue(val);
+                                    if (val === '/') {
+                                        setShowSlashMenu(true);
+                                        setSlashMenuIndex(0);
+                                    } else {
+                                        setShowSlashMenu(false);
                                     }
-                                }
-                            }}
-                            className="w-full px-3 py-3 min-h-[60px] max-h-[150px] text-[14px] text-gray-900 outline-none resize-y bg-transparent rounded-t-xl placeholder:text-gray-400"
-                            placeholder="Describe your integration..."
-                            rows={2}
-                        />
+                                }}
+                                onKeyDown={(e) => {
+                                    if (showSlashMenu) {
+                                        if (e.key === 'ArrowDown') {
+                                            e.preventDefault();
+                                            setSlashMenuIndex((prev) => {
+                                                const next = (prev + 1) % slashCommands.length;
+                                                slashMenuRefs.current[next]?.scrollIntoView({ block: 'nearest' });
+                                                return next;
+                                            });
+                                        } else if (e.key === 'ArrowUp') {
+                                            e.preventDefault();
+                                            setSlashMenuIndex((prev) => {
+                                                const next = (prev - 1 + slashCommands.length) % slashCommands.length;
+                                                slashMenuRefs.current[next]?.scrollIntoView({ block: 'nearest' });
+                                                return next;
+                                            });
+                                        } else if (e.key === 'Enter') {
+                                            e.preventDefault();
+                                            const cmd = slashCommands[slashMenuIndex];
+                                            setActiveCommand({ name: cmd.name, icon: cmd.icon });
+                                            setInputValue('');
+                                            setShowSlashMenu(false);
+                                            return;
+                                        } else if (e.key === 'Escape') {
+                                            setShowSlashMenu(false);
+                                            return;
+                                        }
+                                    }
+                                    if (e.key === 'Backspace' && inputValue === '' && activeCommand) {
+                                        setActiveCommand(null);
+                                    }
+                                    if (e.key === 'Escape') {
+                                        setShowSlashMenu(false);
+                                    }
+                                    if (e.key === 'Enter' && !e.shiftKey) {
+                                        e.preventDefault();
+                                        setShowSlashMenu(false);
+                                        if (inputValue.trim() || activeCommand || chatState === 'empty') {
+                                            handleStartGeneration();
+                                        }
+                                    }
+                                }}
+                                className="flex-1 min-w-[120px] py-1 max-h-[120px] text-[14px] text-gray-900 outline-none resize-none bg-transparent placeholder:text-gray-400"
+                                placeholder={activeCommand ? `Describe your ${activeCommand.name.slice(1)} request...` : inputMode === 'build' ? "Describe what to build..." : "Describe what to plan..."}
+                                rows={2}
+                            />
+                        </div>
 
                         {/* Bottom Toolbar inside input */}
                         <div className="flex justify-between items-center px-2 pb-2 mt-1">
@@ -364,7 +501,7 @@ export default function WSO2CopilotPrototype() {
                                     className={`flex items-center gap-1.5 px-3 py-1 rounded-[4px] text-[12px] font-medium transition-all ${inputMode === 'build' ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-600 hover:text-gray-900'
                                         }`}
                                 >
-                                    <Pencil size={12} fill={inputMode === 'build' ? 'currentColor' : 'none'} />
+                                    <Hammer size={12} />
                                     Build
                                 </button>
                                 <button
@@ -381,9 +518,10 @@ export default function WSO2CopilotPrototype() {
                             <div className="flex items-center gap-1">
                                 <button
                                     title="Use slash commands"
-                                    className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
+                                    onClick={() => { setShowSlashMenu(!showSlashMenu); setSlashMenuIndex(0); }}
+                                    className={`w-[28px] h-[28px] flex items-center justify-center hover:text-gray-700 hover:bg-gray-100 rounded-md transition-colors ${showSlashMenu ? 'text-blue-600 bg-blue-50' : 'text-gray-400'}`}
                                 >
-                                    <TerminalSquare size={16} strokeWidth={1.5} />
+                                    <span className="text-[15px] font-medium leading-none">/</span>
                                 </button>
                                 <button
                                     title="Attach context or files"
@@ -414,7 +552,6 @@ export default function WSO2CopilotPrototype() {
                                         <Send
                                             size={16}
                                             strokeWidth={2}
-                                            className={inputValue.trim() || chatState === 'empty' ? "translate-x-0.5" : ""}
                                         />
                                     </button>
                                 )}
