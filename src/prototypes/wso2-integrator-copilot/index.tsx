@@ -1,4 +1,6 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, type ComponentPropsWithoutRef } from 'react';
+import ReactMarkdown from 'react-markdown';
+import notesContent from './notes.md?raw';
 import {
     Settings,
     ListX,
@@ -78,15 +80,56 @@ export default function WSO2CopilotPrototype() {
 
     return (
         <div className="flex h-screen w-full bg-gray-50 font-sans">
-            {/* Left Side - Blank IDE Area */}
-            <div className="flex-1 bg-white relative border-r border-gray-200">
-                <div
-                    className="absolute inset-0 pointer-events-none opacity-20"
-                    style={{
-                        backgroundImage: 'radial-gradient(#cbd5e1 1px, transparent 1px)',
-                        backgroundSize: '24px 24px',
-                    }}
-                />
+            {/* Left Side - Notes Panel */}
+            <div
+                className="flex-1 bg-white relative border-r border-gray-200 overflow-y-auto"
+                onClick={(e) => {
+                    const target = (e.target as HTMLElement).closest('a[href^="#action-"]');
+                    if (!target) return;
+                    e.preventDefault();
+                    const href = target.getAttribute('href') || '';
+                    const action = href.replace('#action-', '');
+                    switch (action) {
+                        case 'empty': handleReset(); break;
+                        case 'generating': handleStartGeneration(); break;
+                        case 'review': setChatState('review'); break;
+                        case 'accepted': setChatState('accepted'); break;
+                        case 'slashMenu': handleReset(); setShowSlashMenu(true); setSlashMenuIndex(0); break;
+                        case 'planMode': setInputMode('plan'); break;
+                        case 'buildMode': setInputMode('build'); break;
+                    }
+                }}
+            >
+                <div className="max-w-2xl mx-auto px-8 py-12">
+                    <ReactMarkdown
+                        components={{
+                            h1: (props: ComponentPropsWithoutRef<'h1'>) => <h1 className="text-2xl font-bold text-gray-900 mb-2" {...props} />,
+                            h2: (props: ComponentPropsWithoutRef<'h2'>) => <h2 className="text-lg font-semibold text-gray-900 mt-8 mb-3" {...props} />,
+                            p: (props: ComponentPropsWithoutRef<'p'>) => <p className="text-[14px] text-gray-600 leading-relaxed mb-3" {...props} />,
+                            hr: (props: ComponentPropsWithoutRef<'hr'>) => <hr className="border-gray-100 my-6" {...props} />,
+                            ul: (props: ComponentPropsWithoutRef<'ul'>) => <ul className="list-disc pl-5 text-[14px] text-gray-600 space-y-1 mb-3" {...props} />,
+                            li: (props: ComponentPropsWithoutRef<'li'>) => <li className="leading-relaxed" {...props} />,
+                            strong: (props: ComponentPropsWithoutRef<'strong'>) => <strong className="text-gray-800 font-semibold" {...props} />,
+                            code: (props: ComponentPropsWithoutRef<'code'>) => <code className="bg-gray-100 px-1.5 py-0.5 rounded text-[13px] text-gray-700" {...props} />,
+                            a: ({ href, children }: ComponentPropsWithoutRef<'a'>) => {
+                                if (href?.startsWith('#action-')) {
+                                    return (
+                                        <a
+                                            href={href}
+                                            className="inline-flex items-center gap-1 px-2.5 py-1 text-[12.5px] font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 hover:border-blue-300 transition-all cursor-pointer no-underline"
+                                        >
+                                            <ArrowRight size={12} strokeWidth={2} />
+                                            {children}
+                                        </a>
+                                    );
+                                }
+                                return <a href={href} className="text-blue-600 hover:underline">{children}</a>;
+                            },
+                        }}
+                    >
+                        {notesContent}
+                    </ReactMarkdown>
+                </div>
             </div>
 
             {/* Right Side - WSO2 Integrator Copilot Panel */}
