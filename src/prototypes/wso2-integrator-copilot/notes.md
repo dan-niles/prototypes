@@ -43,6 +43,11 @@ Each tool action now has a **distinct icon** instead of a generic wrench:
 - **FilePen** for file updates
 - **CircleCheck** for diagnostics
 
+When the tool call is complete, the line becomes greyed out to indicate completion. Also, the current UI text feels too condensed, so add more spacing between text elements.
+
+![Current Tool Call Icons](img/task-icons.png#width=290)
+![Proposed Tool Call Icons](img/proposed-task-icons.png#width=290)
+
 [View tool calls](#action-generating)
 
 ---
