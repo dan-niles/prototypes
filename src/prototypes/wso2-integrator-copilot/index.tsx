@@ -25,7 +25,8 @@ import {
     Sparkles,
     FileJson,
     BookOpen,
-    X
+    X,
+    RotateCcw
 } from 'lucide-react';
 
 export default function WSO2CopilotPrototype() {
@@ -141,6 +142,13 @@ export default function WSO2CopilotPrototype() {
                             <div className="flex items-center gap-2 text-[12px] text-gray-400 px-1">
                                 <CheckCircle2 size={13} strokeWidth={2} className="text-green-500" />
                                 <span>Checkpoint saved</span>
+                                <button
+                                    onClick={handleReset}
+                                    className="cursor-pointer group/restore flex items-center gap-1 px-1.5 py-0.5 rounded text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-all"
+                                >
+                                    <RotateCcw size={11} strokeWidth={2.5} />
+                                    <span className="max-w-0 overflow-hidden group-hover/restore:max-w-[60px] transition-all duration-200 whitespace-nowrap">Restore</span>
+                                </button>
                             </div>
 
                             {/* User Message */}
