@@ -56,6 +56,7 @@ interface CopilotPanelProps {
     onReset: () => void;
     authProvider: string;
     headerMode: 'bi' | 'mi';
+    checkpointStyle: 'inline' | 'divider';
 }
 
 export default function CopilotPanel({
@@ -71,6 +72,7 @@ export default function CopilotPanel({
     onReset,
     authProvider,
     headerMode,
+    checkpointStyle,
 }: CopilotPanelProps) {
     const [isChangesExpanded, setIsChangesExpanded] = useState(false);
     const [inputValue, setInputValue] = useState('');
@@ -190,19 +192,8 @@ export default function CopilotPanel({
                     </div>
                 ) : isPlanState(chatState) ? (
                     /* --- PLAN MODE FLOW --- */
-                    <div className="space-y-5 animate-in fade-in duration-300">
-                        {/* Checkpoint Indicator */}
-                        <div className="flex items-center gap-2 text-[12px] text-gray-400 px-1">
-                            <CheckCircle2 size={13} strokeWidth={2} className="text-green-500" />
-                            <span>Checkpoint saved</span>
-                            <button
-                                onClick={handleReset}
-                                className="cursor-pointer group/restore flex items-center gap-1 px-1.5 py-0.5 rounded text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-all"
-                            >
-                                <RotateCcw size={11} strokeWidth={2.5} />
-                                <span className="max-w-0 overflow-hidden group-hover/restore:max-w-[60px] transition-all duration-200 whitespace-nowrap">Restore</span>
-                            </button>
-                        </div>
+                    <div className={`space-y-5 animate-in fade-in duration-300 ${checkpointStyle === 'divider' ? 'group/turn' : ''}`}>
+                        <CheckpointIndicator style={checkpointStyle} onRestore={handleReset} />
 
                         {/* User Message */}
                         <div className="flex justify-end">
@@ -356,19 +347,8 @@ export default function CopilotPanel({
                     </div>
                 ) : (
                     /* --- BUILD MODE FLOW --- */
-                    <div className="space-y-5 animate-in fade-in duration-300">
-                        {/* Checkpoint Indicator */}
-                        <div className="flex items-center gap-2 text-[12px] text-gray-400 px-1">
-                            <CheckCircle2 size={13} strokeWidth={2} className="text-green-500" />
-                            <span>Checkpoint saved</span>
-                            <button
-                                onClick={handleReset}
-                                className="cursor-pointer group/restore flex items-center gap-1 px-1.5 py-0.5 rounded text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-all"
-                            >
-                                <RotateCcw size={11} strokeWidth={2.5} />
-                                <span className="max-w-0 overflow-hidden group-hover/restore:max-w-[60px] transition-all duration-200 whitespace-nowrap">Restore</span>
-                            </button>
-                        </div>
+                    <div className={`space-y-5 animate-in fade-in duration-300 ${checkpointStyle === 'divider' ? 'group/turn' : ''}`}>
+                        <CheckpointIndicator style={checkpointStyle} onRestore={handleReset} />
 
                         {/* User Message */}
                         <div className="flex justify-end">
@@ -1009,6 +989,40 @@ function TaskThinkingItem({ text }: { text: string }) {
                     I need to implement the resource function logic. The function should return "Hello, World!" as a string response for GET requests to the /world path.
                 </p>
             </Collapse>
+        </div>
+    );
+}
+
+/** Checkpoint indicator — two styles: inline (current) and divider (GitHub-inspired) */
+function CheckpointIndicator({ style, onRestore }: { style: 'inline' | 'divider'; onRestore: () => void }) {
+    if (style === 'divider') {
+        return (
+            <div className="flex items-center justify-center relative mt-1 mb-3 opacity-0 group-hover/turn:opacity-100 transition-opacity duration-200">
+                <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-gray-200"></div>
+                </div>
+                <button
+                    onClick={onRestore}
+                    className="relative flex items-center gap-1.5 px-3 py-1 bg-white text-[12px] text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                    <span>Restore Checkpoint</span>
+                    <RotateCcw size={11} strokeWidth={2.5} />
+                </button>
+            </div>
+        );
+    }
+
+    return (
+        <div className="flex items-center gap-2 text-[12px] text-gray-400 px-1">
+            <CheckCircle2 size={13} strokeWidth={2} className="text-green-500" />
+            <span>Checkpoint saved</span>
+            <button
+                onClick={onRestore}
+                className="cursor-pointer group/restore flex items-center gap-1 px-1.5 py-0.5 rounded text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-all"
+            >
+                <RotateCcw size={11} strokeWidth={2.5} />
+                <span className="max-w-0 overflow-hidden group-hover/restore:max-w-[60px] transition-all duration-200 whitespace-nowrap">Restore</span>
+            </button>
         </div>
     );
 }

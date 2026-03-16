@@ -81,12 +81,20 @@ Completed tool calls are greyed out to visually distinguish them from active one
 
 ## 6. Checkpoint Indicator
 
-The checkpoint indicator is simplified to a compact inline element. A restore button reveals its label on hover — the icon alone hints at interactivity without adding visual clutter.
+Two options for the checkpoint indicator:
+
+**Option A — Divider**: A centered "Restore Checkpoint" label on a thin divider line, visible only when hovering over the conversation turn. Treats the checkpoint as a boundary marker rather than a status message.
+
+**Option B — Inline**: A compact inline element with a green checkmark. The restore button reveals its label on hover.
 
 ![Current Checkpoint Indicator](img/checkpoint.png#width=290)
-![Proposed Checkpoint Indicator](img/new-checkpoint.png#width=290)
 
-[View checkpoint](#action-generating)
+![Proposed Checkpoint Indicator #1](img/new-checkpoint-2.png#width=290)
+![Proposed Checkpoint Indicator #2](img/new-checkpoint.png#width=290)
+
+[Option A: Divider](#action-checkpointDivider) · [Option B: Inline](#action-checkpointInline)
+
+Note: Switch to a non-empty state (e.g. "View tool calls" below) to see the checkpoint in action, then hover over the chat area for Option A.
 
 ---
 
