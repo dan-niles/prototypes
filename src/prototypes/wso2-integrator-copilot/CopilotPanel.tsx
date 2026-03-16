@@ -28,7 +28,12 @@ import {
     RotateCcw,
     Plug,
     MoreHorizontal,
-    Globe
+    Globe,
+    Cloud,
+    Key,
+    Infinity,
+    LogOut,
+    MessageSquarePlus
 } from 'lucide-react';
 
 const slashCommands = [
@@ -51,6 +56,8 @@ interface CopilotPanelProps {
     setSlashMenuIndex: (index: number | ((prev: number) => number)) => void;
     onStartGeneration: () => void;
     onReset: () => void;
+    authProvider: string;
+    headerMode: 'bi' | 'mi';
 }
 
 export default function CopilotPanel({
@@ -64,6 +71,8 @@ export default function CopilotPanel({
     setSlashMenuIndex,
     onStartGeneration,
     onReset,
+    authProvider,
+    headerMode,
 }: CopilotPanelProps) {
     const [isChangesExpanded, setIsChangesExpanded] = useState(false);
     const [inputValue, setInputValue] = useState('');
@@ -118,21 +127,41 @@ export default function CopilotPanel({
     return (
         <div className="w-[450px] lg:w-[500px] bg-white flex flex-col shadow-sm z-10">
             {/* Header */}
-            <div className="flex justify-end items-center px-4 py-3 border-b border-gray-100 text-[13px] text-gray-600 shrink-0 bg-white">
+            <div className="flex justify-between items-center px-4 py-3 border-b border-gray-100 text-[13px] text-gray-600 shrink-0 bg-white">
+                <AuthProviderChip provider={authProvider} />
                 <div className="flex items-center gap-4">
-                    {chatState !== 'empty' && (
-                        <button
-                            onClick={handleReset}
-                            className="flex items-center gap-1.5 hover:text-gray-900 transition-colors"
-                        >
-                            <ListX size={15} strokeWidth={1.5} />
-                            <span>Clear</span>
-                        </button>
+                    {headerMode === 'bi' ? (
+                        <>
+                            {chatState !== 'empty' && (
+                                <button
+                                    onClick={handleReset}
+                                    className="flex items-center gap-1.5 hover:text-gray-900 transition-colors"
+                                >
+                                    <ListX size={15} strokeWidth={1.5} />
+                                    <span>Clear</span>
+                                </button>
+                            )}
+                            <button className="flex items-center gap-1.5 hover:text-gray-900 transition-colors">
+                                <Settings size={15} strokeWidth={1.5} />
+                                <span>Settings</span>
+                            </button>
+                        </>
+                    ) : (
+                        <>
+                            <button
+                                onClick={handleReset}
+                                className="flex items-center gap-1.5 hover:text-gray-900 transition-colors"
+                            >
+                                <MessageSquarePlus size={14} strokeWidth={1.5} />
+                                <span>New Chat</span>
+                                <ChevronDown size={12} strokeWidth={2} className="text-gray-400" />
+                            </button>
+                            <button className="flex items-center gap-1.5 hover:text-gray-900 transition-colors">
+                                <LogOut size={14} strokeWidth={1.5} />
+                                <span>Logout</span>
+                            </button>
+                        </>
                     )}
-                    <button className="flex items-center gap-1.5 hover:text-gray-900 transition-colors">
-                        <Settings size={15} strokeWidth={1.5} />
-                        <span>Settings</span>
-                    </button>
                 </div>
             </div>
 
@@ -661,22 +690,22 @@ export default function CopilotPanel({
                     {/* Bottom Toolbar */}
                     <div className="flex justify-between items-center px-2 pb-2 mt-1">
                         <div className="flex items-center gap-1">
-                        <div className={`flex bg-gray-100 rounded-[6px] p-0.5 border border-gray-200/50 ${isExecuting ? 'opacity-50 pointer-events-none' : ''}`}>
-                            <button
-                                onClick={() => setInputMode('build')}
-                                className={`flex items-center gap-1.5 px-3 py-1 rounded-[4px] text-[12px] font-medium transition-all ${inputMode === 'build' ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
-                            >
-                                <Hammer size={12} />
-                                Build
-                            </button>
-                            <button
-                                onClick={() => setInputMode('plan')}
-                                className={`flex items-center gap-1.5 px-3 py-1 rounded-[4px] text-[12px] font-medium transition-all ${inputMode === 'plan' ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
-                            >
-                                <LayoutList size={12} />
-                                Plan
-                            </button>
-                        </div>
+                            <div className={`flex bg-gray-100 rounded-[6px] p-0.5 border border-gray-200/50 ${isExecuting ? 'opacity-50 pointer-events-none' : ''}`}>
+                                <button
+                                    onClick={() => setInputMode('build')}
+                                    className={`flex items-center gap-1.5 px-3 py-1 rounded-[4px] text-[12px] font-medium transition-all ${inputMode === 'build' ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
+                                >
+                                    <Hammer size={12} />
+                                    Build
+                                </button>
+                                <button
+                                    onClick={() => setInputMode('plan')}
+                                    className={`flex items-center gap-1.5 px-3 py-1 rounded-[4px] text-[12px] font-medium transition-all ${inputMode === 'plan' ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
+                                >
+                                    <LayoutList size={12} />
+                                    Plan
+                                </button>
+                            </div>
 
                             <button
                                 title="Web search"
@@ -849,6 +878,39 @@ function DiffTree() {
                     + Added
                 </span>
             </div>
+        </div>
+    );
+}
+
+const authProviderConfig: Record<string, { label: string; icon: React.ComponentType<any>; detail?: string }> = {
+    'wso2-cloud': { label: 'WSO2 Cloud', icon: Cloud, detail: 'Unlimited' },
+    'anthropic': { label: 'Anthropic API', icon: Key },
+    'aws-bedrock': { label: 'AWS Bedrock', icon: Key },
+    'vertex-ai': { label: 'Vertex AI', icon: Key },
+};
+
+function AuthProviderChip({ provider }: { provider: string }) {
+    const config = authProviderConfig[provider];
+    if (!config) return null;
+    const Icon = config.icon;
+
+    return (
+        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-50 border border-gray-200 rounded-lg text-[12px] text-gray-500">
+            <Icon size={13} strokeWidth={1.5} />
+            <span className="font-medium">{config.label}</span>
+            {config.detail && (
+                <>
+                    <span className="text-gray-300">·</span>
+                    <span className="group/tip relative flex items-center gap-1 text-gray-400 cursor-default">
+                        <Infinity size={12} strokeWidth={2} />
+                        <span className="pointer-events-none absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2.5 py-1.5 text-[11px] font-medium text-gray-600 bg-white border border-gray-200 rounded-md whitespace-nowrap opacity-0 group-hover/tip:opacity-100 transition-opacity duration-150 shadow-md">
+                            Remaining Usage: Unlimited
+                            <span className="absolute bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent border-b-gray-200"></span>
+                            <span className="absolute bottom-full left-1/2 -translate-x-1/2 mt-px border-4 border-transparent border-b-white"></span>
+                        </span>
+                    </span>
+                </>
+            )}
         </div>
     );
 }

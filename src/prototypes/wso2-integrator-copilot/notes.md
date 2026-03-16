@@ -98,7 +98,18 @@ Suggested prompts are styled as **card-style chips** for better visual affordanc
 
 ---
 
-## 8. Header Cleanup
+## 8. Header & Auth Provider
 
-- "Remaining Usage: Unlimited" is hidden when the usage is unlimited, and only shown when there's a meaningful limit to display
-- Clear button is **hidden on fresh conversations** since there's nothing to clear yet
+The header has two variations — one for BI and one for MI — while sharing the same auth provider chip on the left.
+
+**BI header:** Auth chip + Clear (hidden on fresh conversations) + Settings
+
+**MI header:** Auth chip + New Chat (with dropdown for session history) + Logout
+
+[BI Header](#action-headerBI) · [MI Header](#action-headerMI)
+
+**Auth provider chip** adapts based on the user's authentication method:
+- **WSO2 Cloud** — cloud icon with an infinity symbol for unlimited usage. When limits are enforced, this can show a counter or progress indicator.
+- **Anthropic API / AWS Bedrock / Vertex AI** — key icon with the provider name. No usage info since WSO2 doesn't manage the quota for BYOK users.
+
+Auth providers: [WSO2 Cloud](#action-authWso2) · [Anthropic API](#action-authAnthropic) · [AWS Bedrock](#action-authBedrock) · [Vertex AI](#action-authVertex)
