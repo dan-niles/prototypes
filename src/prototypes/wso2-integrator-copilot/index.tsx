@@ -38,6 +38,8 @@ export default function WSO2CopilotPrototype() {
             case 'authVertex': setAuthProvider('vertex-ai'); break;
             case 'headerBI': setHeaderMode('bi'); break;
             case 'headerMI': setHeaderMode('mi'); break;
+            case 'thinking': setChatState('thinking'); break;
+            case 'thoughtComplete': setChatState('thought-complete'); break;
         }
     };
 

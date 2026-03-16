@@ -81,7 +81,7 @@ export default function CopilotPanel({
     const [isPlanTasksExpanded, setIsPlanTasksExpanded] = useState(true);
     const [isPlanApprovedExpanded, setIsPlanApprovedExpanded] = useState(false);
     const [webSearchEnabled, setWebSearchEnabled] = useState(false);
-    const isExecuting = ['generating', 'plan-generating', 'plan-revising', 'plan-building-1', 'plan-building-2'].includes(chatState);
+    const isExecuting = ['generating', 'thinking', 'plan-generating', 'plan-revising', 'plan-building-1', 'plan-building-2'].includes(chatState);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const slashMenuRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
@@ -92,6 +92,10 @@ export default function CopilotPanel({
     useEffect(() => {
         if (chatState === 'generating') {
             const timer = setTimeout(() => setChatState('review'), 3500);
+            return () => clearTimeout(timer);
+        }
+        if (chatState === 'thinking') {
+            const timer = setTimeout(() => setChatState('thought-complete'), 3000);
             return () => clearTimeout(timer);
         }
         if (chatState === 'plan-generating') {
@@ -205,7 +209,7 @@ export default function CopilotPanel({
                         {/* User Message */}
                         <div className="flex justify-end">
                             <div className="bg-[#E2E8F0]/60 text-gray-800 text-[13px] px-4 py-2.5 rounded-xl rounded-tr-sm max-w-[85%]">
-                                write a hello world http service
+                                build a hello world http service
                             </div>
                         </div>
 
@@ -370,129 +374,136 @@ export default function CopilotPanel({
                         {/* User Message */}
                         <div className="flex justify-end">
                             <div className="bg-[#E2E8F0]/60 text-gray-800 text-[13px] px-4 py-2.5 rounded-xl rounded-tr-sm max-w-[85%]">
-                                write a hello world http service
+                                build a hello world http service
                             </div>
                         </div>
+
+                        {/* Thinking Block */}
+                        {(chatState === 'thinking' || chatState === 'thought-complete') && (
+                            <ThinkingBlock status={chatState === 'thinking' ? 'thinking' : 'done'} />
+                        )}
 
                         {/* AI Response Container */}
-                        <div className="text-[13px] text-gray-800 space-y-4 leading-relaxed">
-                            <p>
-                                I'll help you create a simple HTTP "Hello World" service. Let me
-                                modify the existing code to add this service.
-                            </p>
+                        {chatState !== 'thinking' && (
+                            <div className="text-[13px] text-gray-800 space-y-4 leading-relaxed">
+                                <p>
+                                    I'll help you create a simple HTTP "Hello World" service. Let me
+                                    modify the existing code to add this service.
+                                </p>
 
-                            {/* Tool Calls */}
-                            <div className="space-y-1.5 text-gray-400 text-[12.5px]">
-                                <div className="flex items-center gap-2">
-                                    <Search size={13} strokeWidth={2} />
-                                    <span>HTTP service libraries search completed</span>
+                                {/* Tool Calls */}
+                                <div className="space-y-1.5 text-gray-400 text-[12.5px]">
+                                    <div className="flex items-center gap-2">
+                                        <Search size={13} strokeWidth={2} />
+                                        <span>HTTP service libraries search completed</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Package size={13} strokeWidth={2} />
+                                        <span>Fetched: [ballerina/http]</span>
+                                    </div>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                    <Package size={13} strokeWidth={2} />
-                                    <span>Fetched: [ballerina/http]</span>
-                                </div>
-                            </div>
 
-                            {(chatState === 'review' || chatState === 'accepted') && (
-                                <div className="animate-in fade-in duration-300 space-y-4">
-                                    <p>Now I'll add a simple "Hello World" HTTP service to the existing code:</p>
-                                    <div className="space-y-1.5 text-gray-400 text-[12.5px]">
-                                        <div className="flex items-center gap-2">
-                                            <FilePen size={13} strokeWidth={2} />
-                                            <span>Updated <span className="font-medium text-gray-500">main.bal</span></span>
+                                {(chatState === 'review' || chatState === 'accepted') && (
+                                    <div className="animate-in fade-in duration-300 space-y-4">
+                                        <p>Now I'll add a simple "Hello World" HTTP service to the existing code:</p>
+                                        <div className="space-y-1.5 text-gray-400 text-[12.5px]">
+                                            <div className="flex items-center gap-2">
+                                                <FilePen size={13} strokeWidth={2} />
+                                                <span>Updated <span className="font-medium text-gray-500">main.bal</span></span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <CircleCheck size={13} strokeWidth={2} />
+                                                <span>No issues found</span>
+                                            </div>
                                         </div>
-                                        <div className="flex items-center gap-2">
-                                            <CircleCheck size={13} strokeWidth={2} />
-                                            <span>No issues found</span>
+                                    </div>
+                                )}
+
+                                {/* Post-Generation Explanation */}
+                                {(chatState === 'review' || chatState === 'accepted') && (
+                                    <div className="space-y-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                                        <p>
+                                            Perfect! I've successfully added a simple "Hello World" HTTP
+                                            service to your code. Here's what was changed:
+                                        </p>
+                                        <div>
+                                            <strong className="text-gray-900">Summary:</strong>
+                                            <ul className="list-disc pl-5 mt-1 space-y-1 text-gray-700">
+                                                <li>Created a new HTTP listener on port 8080</li>
+                                                <li>
+                                                    Added a new <code className="bg-gray-100 px-1 py-0.5 rounded text-[12px]">/hello</code> service with a <code className="bg-gray-100 px-1 py-0.5 rounded text-[12px]">GET /world</code> endpoint that returns "Hello, World!"
+                                                </li>
+                                                <li>Updated the existing MathTutor service to use the same HTTP listener</li>
+                                            </ul>
+                                        </div>
+                                        <div>
+                                            The service is now ready to use. When you run it, you can access:
+                                            <ul className="list-disc pl-5 mt-1 space-y-1 text-gray-700">
+                                                <li>
+                                                    <code className="bg-gray-100 px-1 py-0.5 rounded text-[12px]">GET http://localhost:8080/hello/world</code> - Returns "Hello, World!"
+                                                </li>
+                                                <li>
+                                                    <code className="bg-gray-100 px-1 py-0.5 rounded text-[12px]">POST http://localhost:8080/MathTutor/chat</code> - Your existing math tutor endpoint
+                                                </li>
+                                            </ul>
                                         </div>
                                     </div>
-                                </div>
-                            )}
+                                )}
 
-                            {/* Post-Generation Explanation */}
-                            {(chatState === 'review' || chatState === 'accepted') && (
-                                <div className="space-y-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                                    <p>
-                                        Perfect! I've successfully added a simple "Hello World" HTTP
-                                        service to your code. Here's what was changed:
-                                    </p>
-                                    <div>
-                                        <strong className="text-gray-900">Summary:</strong>
-                                        <ul className="list-disc pl-5 mt-1 space-y-1 text-gray-700">
-                                            <li>Created a new HTTP listener on port 8080</li>
-                                            <li>
-                                                Added a new <code className="bg-gray-100 px-1 py-0.5 rounded text-[12px]">/hello</code> service with a <code className="bg-gray-100 px-1 py-0.5 rounded text-[12px]">GET /world</code> endpoint that returns "Hello, World!"
-                                            </li>
-                                            <li>Updated the existing MathTutor service to use the same HTTP listener</li>
-                                        </ul>
+                                {/* Changes Card */}
+                                {chatState === 'review' && (
+                                    <div className="border border-gray-200 rounded-lg p-3 shadow-sm bg-white animate-in fade-in duration-300">
+                                        <div className="font-semibold text-gray-900 mb-2">Changes ready to review</div>
+                                        <DiffTree />
+                                        <div className="flex justify-end gap-2 mt-4">
+                                            <button onClick={handleReset} className="px-4 py-1.5 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md font-medium transition-colors">
+                                                Discard
+                                            </button>
+                                            <button onClick={() => setChatState('accepted')} className="px-4 py-1.5 text-white bg-blue-600 hover:bg-blue-700 rounded-md font-medium transition-colors">
+                                                ✓ Keep
+                                            </button>
+                                        </div>
                                     </div>
-                                    <div>
-                                        The service is now ready to use. When you run it, you can access:
-                                        <ul className="list-disc pl-5 mt-1 space-y-1 text-gray-700">
-                                            <li>
-                                                <code className="bg-gray-100 px-1 py-0.5 rounded text-[12px]">GET http://localhost:8080/hello/world</code> - Returns "Hello, World!"
-                                            </li>
-                                            <li>
-                                                <code className="bg-gray-100 px-1 py-0.5 rounded text-[12px]">POST http://localhost:8080/MathTutor/chat</code> - Your existing math tutor endpoint
-                                            </li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            )}
+                                )}
 
-                            {/* Changes Card */}
-                            {chatState === 'review' && (
-                                <div className="border border-gray-200 rounded-lg p-3 shadow-sm bg-white animate-in fade-in duration-300">
-                                    <div className="font-semibold text-gray-900 mb-2">Changes ready to review</div>
-                                    <DiffTree />
-                                    <div className="flex justify-end gap-2 mt-4">
-                                        <button onClick={handleReset} className="px-4 py-1.5 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md font-medium transition-colors">
-                                            Discard
-                                        </button>
-                                        <button onClick={() => setChatState('accepted')} className="px-4 py-1.5 text-white bg-blue-600 hover:bg-blue-700 rounded-md font-medium transition-colors">
-                                            ✓ Keep
-                                        </button>
-                                    </div>
-                                </div>
-                            )}
+                                {/* Accepted State */}
+                                {chatState === 'accepted' && (
+                                    <div className="space-y-4 animate-in fade-in duration-300">
+                                        <div className="border border-gray-200 rounded-lg bg-white overflow-hidden shadow-sm">
+                                            <button
+                                                onClick={() => setIsChangesExpanded(!isChangesExpanded)}
+                                                className="flex items-center gap-2 w-full p-2.5 text-gray-700 hover:bg-gray-50 transition-colors"
+                                            >
+                                                {isChangesExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                                                <span className="font-medium">Changes accepted</span>
+                                            </button>
+                                            <Collapse open={isChangesExpanded}>
+                                                <div className="p-3 pt-0 border-t border-gray-100 bg-gray-50/50">
+                                                    <div className="mt-2">
+                                                        <DiffTree />
+                                                    </div>
+                                                </div>
+                                            </Collapse>
+                                        </div>
 
-                            {/* Accepted State */}
-                            {chatState === 'accepted' && (
-                                <div className="space-y-4 animate-in fade-in duration-300">
-                                    <div className="border border-gray-200 rounded-lg bg-white overflow-hidden shadow-sm">
-                                        <button
-                                            onClick={() => setIsChangesExpanded(!isChangesExpanded)}
-                                            className="flex items-center gap-2 w-full p-2.5 text-gray-700 hover:bg-gray-50 transition-colors"
-                                        >
-                                            {isChangesExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-                                            <span className="font-medium">Changes accepted</span>
-                                        </button>
-                                        <Collapse open={isChangesExpanded}>
-                                            <div className="p-3 pt-0 border-t border-gray-100 bg-gray-50/50">
-                                                <div className="mt-2">
-                                                    <DiffTree />
+                                        {/* Feedback Widget */}
+                                        <div className="flex justify-center pb-4">
+                                            <div className="flex items-center gap-4 border border-gray-200 rounded-lg px-4 py-2 bg-white shadow-sm">
+                                                <span className="text-gray-600 font-medium">Was this response helpful?</span>
+                                                <div className="flex items-center gap-1">
+                                                    <button className="p-1.5 text-gray-400 hover:text-gray-800 hover:bg-gray-100 rounded transition-colors">
+                                                        <ThumbsUp size={16} />
+                                                    </button>
+                                                    <button className="p-1.5 text-gray-400 hover:text-gray-800 hover:bg-gray-100 rounded transition-colors">
+                                                        <ThumbsDown size={16} />
+                                                    </button>
                                                 </div>
                                             </div>
-                                        </Collapse>
-                                    </div>
-
-                                    {/* Feedback Widget */}
-                                    <div className="flex justify-center pb-4">
-                                        <div className="flex items-center gap-4 border border-gray-200 rounded-lg px-4 py-2 bg-white shadow-sm">
-                                            <span className="text-gray-600 font-medium">Was this response helpful?</span>
-                                            <div className="flex items-center gap-1">
-                                                <button className="p-1.5 text-gray-400 hover:text-gray-800 hover:bg-gray-100 rounded transition-colors">
-                                                    <ThumbsUp size={16} />
-                                                </button>
-                                                <button className="p-1.5 text-gray-400 hover:text-gray-800 hover:bg-gray-100 rounded transition-colors">
-                                                    <ThumbsDown size={16} />
-                                                </button>
-                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            )}
-                        </div>
+                                )}
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
@@ -539,11 +550,11 @@ export default function CopilotPanel({
                             className="flex items-center gap-2 px-3 py-2 text-[12.5px] text-gray-600 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 hover:border-gray-300 transition-all"
                         >
                             <ArrowRight size={13} strokeWidth={2} className="text-gray-400" />
-                            write a hello world http service
+                            build a hello world http service
                         </button>
                         <button className="flex items-center gap-2 px-3 py-2 text-[12.5px] text-gray-600 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 hover:border-gray-300 transition-all">
                             <ArrowRight size={13} strokeWidth={2} className="text-gray-400" />
-                            /ask how to write a concurrent application?
+                            /ask how to build a concurrent application?
                         </button>
                     </div>
                 )}
@@ -911,6 +922,46 @@ function AuthProviderChip({ provider }: { provider: string }) {
                     </span>
                 </>
             )}
+        </div>
+    );
+}
+
+/** Thinking state block — shows pulsing indicator while thinking, collapsible summary when done */
+function ThinkingBlock({ status }: { status: 'thinking' | 'done' }) {
+    const [expanded, setExpanded] = useState(false);
+
+    if (status === 'thinking') {
+        return (
+            <div className="flex items-center gap-2 text-[12.5px] text-gray-400 animate-in fade-in duration-300">
+                <ChevronRight size={13} strokeWidth={2} />
+                <span>
+                    Thinking
+                    <span className="inline-flex w-4">
+                        <span className="animate-[fade-dot_1.4s_ease-in-out_infinite]">.</span>
+                        <span className="animate-[fade-dot_1.4s_ease-in-out_0.2s_infinite]">.</span>
+                        <span className="animate-[fade-dot_1.4s_ease-in-out_0.4s_infinite]">.</span>
+                    </span>
+                </span>
+            </div>
+        );
+    }
+
+    return (
+        <div className="animate-in fade-in duration-300">
+            <button
+                onClick={() => setExpanded(!expanded)}
+                className="flex items-center gap-2 text-[12.5px] text-gray-400 hover:text-gray-600 transition-colors"
+            >
+                {expanded ? <ChevronDown size={13} strokeWidth={2} /> : <ChevronRight size={13} strokeWidth={2} />}
+                <span>Thought for 5s</span>
+            </button>
+            <Collapse open={expanded}>
+                <div className="ml-6 mt-2 pl-3 border-l-2 border-gray-200 text-[12.5px] text-gray-400 space-y-2 leading-relaxed">
+                    <p>The user wants a hello world HTTP service. I need to check if there are existing service files and what HTTP libraries are available.</p>
+                    <p>I'll search for HTTP service libraries first, then create a simple service with a GET endpoint that returns "Hello, World!".</p>
+                    <p>I should use the existing HTTP listener if one is already configured, otherwise create a new one on port 8080.</p>
+                </div>
+            </Collapse>
         </div>
     );
 }

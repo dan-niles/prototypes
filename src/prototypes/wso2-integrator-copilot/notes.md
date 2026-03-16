@@ -98,7 +98,15 @@ Suggested prompts are styled as **card-style chips** for better visual affordanc
 
 ---
 
-## 8. Header & Auth Provider
+## 8. Thinking State
+
+When the copilot is reasoning through a complex request, a "Thinking" indicator is shown with a pulsing dot. Once complete, it collapses to **"Thought for Xs"** — clicking expands to reveal the thinking process. This gives users transparency into the AI's reasoning without cluttering the chat by default.
+
+[View thinking state](#action-thinking) · [View thought complete](#action-thoughtComplete)
+
+---
+
+## 9. Header & Auth Provider
 
 The header has two variations — one for BI and one for MI — while sharing the same auth provider chip on the left.
 

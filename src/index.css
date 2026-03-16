@@ -1,2 +1,7 @@
 @import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *));
+
+@keyframes fade-dot {
+  0%, 20% { opacity: 0; }
+  40%, 100% { opacity: 1; }
+}
