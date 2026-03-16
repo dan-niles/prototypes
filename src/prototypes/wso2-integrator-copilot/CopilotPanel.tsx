@@ -27,7 +27,8 @@ import {
     X,
     RotateCcw,
     Plug,
-    MoreHorizontal
+    MoreHorizontal,
+    Globe
 } from 'lucide-react';
 
 const slashCommands = [
@@ -70,6 +71,7 @@ export default function CopilotPanel({
     const [expandedTasks, setExpandedTasks] = useState<Set<number>>(new Set());
     const [isPlanTasksExpanded, setIsPlanTasksExpanded] = useState(true);
     const [isPlanApprovedExpanded, setIsPlanApprovedExpanded] = useState(false);
+    const [webSearchEnabled, setWebSearchEnabled] = useState(false);
     const isExecuting = ['generating', 'plan-generating', 'plan-revising', 'plan-building-1', 'plan-building-2'].includes(chatState);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const slashMenuRefs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -658,6 +660,7 @@ export default function CopilotPanel({
 
                     {/* Bottom Toolbar */}
                     <div className="flex justify-between items-center px-2 pb-2 mt-1">
+                        <div className="flex items-center gap-1">
                         <div className={`flex bg-gray-100 rounded-[6px] p-0.5 border border-gray-200/50 ${isExecuting ? 'opacity-50 pointer-events-none' : ''}`}>
                             <button
                                 onClick={() => setInputMode('build')}
@@ -672,6 +675,15 @@ export default function CopilotPanel({
                             >
                                 <LayoutList size={12} />
                                 Plan
+                            </button>
+                        </div>
+
+                            <button
+                                title="Web search"
+                                onClick={() => setWebSearchEnabled(!webSearchEnabled)}
+                                className={`w-[28px] h-[28px] flex items-center justify-center rounded-md transition-colors ${webSearchEnabled ? 'text-blue-600 bg-blue-50' : 'text-gray-400 hover:text-gray-700 hover:bg-gray-100'}`}
+                            >
+                                <Globe size={15} strokeWidth={1.5} />
                             </button>
                         </div>
 
