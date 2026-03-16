@@ -6,7 +6,7 @@ A walkthrough of the proposed UI/UX changes for the Copilot panel in BI and MI.
 
 ## 1. Welcome Screen
 
-The welcome screen now leads with **value** instead of a disclaimer. The original text warned users that AI can make mistakes — the new copy communicates what the tool helps you do. 
+The welcome screen copy is updated to lead with what the tool can do for the user, while the AI disclaimer is moved to a less prominent position. This helps set a more confident first impression.
 
 Note: We can reuse the original icons currently used in BI; this prototype uses `lucide-react` icons as placeholders.
 
@@ -30,7 +30,10 @@ The input toolbar is reorganized into two logical groups:
 - **Attach** — add files or context
 - **Send / Stop** — submit or cancel
 
-This grouping scales well: BI copilot simply hides the globe since it doesn't support web search.
+![Current Input Area](img/slash-commands.png#width=270)
+![Proposed Input Area](img/new-slash-commands.png#width=280)
+
+Note: BI copilot simply hides the globe since it doesn't support web search.
 
 The mode switcher is **disabled during execution** to prevent mode changes mid-generation.
 
@@ -42,8 +45,8 @@ The mode switcher is **disabled during execution** to prevent mode changes mid-g
 
 Typing `/` or clicking the slash button opens a command palette with icons, names, and descriptions. Supports full keyboard navigation (arrow keys + enter).
 
-![Slash Command Menu](img/slash-commands.png#width=270)
-![Proposed Slash Command Menu](img/new-slash-commands.png#width=280)
+![Current Slash Command Menu](img/slash-commands.png#width=290)
+![Proposed Slash Command Menu](img/new-slash-commands.png#width=290)
 
 Selected commands appear as **styled pills** in the input area with contextual placeholder text.
 
@@ -53,7 +56,7 @@ Selected commands appear as **styled pills** in the input area with contextual p
 
 ## 4. Mode Switcher
 
-The mode formerly called "Edit" (with a pencil icon) has been renamed to **Build** with a hammer icon — "Build" better conveys that the AI is constructing an implementation, not just editing text. Both modes now have distinct placeholder text so users understand the difference at a glance.
+The mode formerly called "Edit" (with a pencil icon) can be renamed to **Build** with a hammer icon — "Build" conveys that the copilot is constructing an implementation, not just editing text. Both modes now have distinct placeholder text so users understand the difference at a glance.
 
 [Switch to Plan mode](#action-planMode) · [Switch to Build mode](#action-buildMode)
 
@@ -61,13 +64,13 @@ The mode formerly called "Edit" (with a pencil icon) has been renamed to **Build
 
 ## 5. Tool Call Icons
 
-Each tool action now has a **distinct icon** instead of a generic wrench:
+Each tool action now has a **distinct icon** to make it easier to scan at a glance:
 - **Search** for library lookups
 - **Package** for fetching dependencies
 - **FilePen** for file updates
 - **CircleCheck** for diagnostics
 
-When the tool call is complete, the line becomes greyed out to indicate completion. Also, the current UI text feels too condensed, so add more spacing between text elements.
+Completed tool calls are greyed out to visually distinguish them from active ones. Spacing between text elements is also increased for better readability.
 
 ![Current Tool Call Icons](img/task-icons.png#width=290)
 ![Proposed Tool Call Icons](img/proposed-task-icons.png#width=290)
@@ -78,29 +81,24 @@ When the tool call is complete, the line becomes greyed out to indicate completi
 
 ## 6. Checkpoint Indicator
 
-The old dashed-line divider was replaced with a clean inline indicator. A restore button reveals its label on hover — the icon alone hints at interactivity.
+The checkpoint indicator is simplified to a compact inline element. A restore button reveals its label on hover — the icon alone hints at interactivity without adding visual clutter.
+
+![Current Checkpoint Indicator](img/checkpoint.png#width=290)
+![Proposed Checkpoint Indicator](img/new-checkpoint.png#width=290)
 
 [View checkpoint](#action-generating)
 
 ---
 
-## 7. Changes Review Card
+## 7. Contextual Suggestions
 
-After generation completes, a diff-style card shows what was changed with Keep/Discard actions. After accepting, the card collapses with an expand toggle.
-
-[View review state](#action-review) · [View accepted state](#action-accepted)
-
----
-
-## 8. Contextual Suggestions
-
-Suggested prompts are now **card-style chips** instead of plain blue links — more discoverable and intentional. Maybe in the future, we can show suggestions based on the user's project.
+Suggested prompts are styled as **card-style chips** for better visual affordance. In the future, these could be dynamic and based on the user's project context.
 
 [View suggestions](#action-empty)
 
 ---
 
-## 9. Header Cleanup
+## 8. Header Cleanup
 
-- Removed "Remaining Usage: Unlimited" — not useful when unlimited
-- Clear button is **hidden on fresh conversations** — nothing to clear
+- "Remaining Usage: Unlimited" is hidden when the usage is unlimited, and only shown when there's a meaningful limit to display
+- Clear button is **hidden on fresh conversations** since there's nothing to clear yet
