@@ -100,9 +100,20 @@ Suggested prompts are styled as **card-style chips** for better visual affordanc
 
 ## 8. Thinking State
 
-When the copilot is reasoning through a complex request, a "Thinking" indicator is shown with a pulsing dot. Once complete, it collapses to **"Thought for Xs"** — clicking expands to reveal the thinking process. This gives users transparency into the AI's reasoning without cluttering the chat by default.
+When the copilot is reasoning through a complex request, a **"Thinking..."** indicator is shown with animated trailing dots. Once complete, it collapses to **"Thought for Xs"** — clicking expands to reveal the thinking process. This gives users transparency into the AI's reasoning without cluttering the chat by default.
+
+Thinking can appear at two levels:
+- **Top-level** — before the AI response begins, as a standalone block
 
 [View thinking state](#action-thinking) · [View thought complete](#action-thoughtComplete)
+
+![Thinking Top Level](img/thinking.png#width=290)
+
+- **Inside a plan task** — as part of a task's tool call list. When expanded, the thinking content appears in-place at the same indent level as other tool calls (no extra nesting), styled in italic to distinguish it from actions.
+
+[View thinking in plan task](#action-planBuilding)
+
+![Thinking in a Plan Task](img/thinking-in-task.png#width=300)
 
 ---
 

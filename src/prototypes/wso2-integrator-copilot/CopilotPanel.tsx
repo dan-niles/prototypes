@@ -322,6 +322,7 @@ export default function CopilotPanel({
                                                 return next;
                                             })}
                                             toolCalls={[
+                                                { type: 'thinking' as const, text: chatState === 'plan-building-2' ? 'Thinking' : 'Thought for 3s' },
                                                 { icon: FilePen, text: <>Updated <span className="font-medium text-gray-500">service.bal</span></> },
                                                 { icon: CircleCheck, text: 'No issues found' },
                                             ]}
@@ -820,13 +821,17 @@ function PlanTasksCard({ title, tasks, expanded, onToggle, muted = false }: {
 }
 
 /** Task item in plan execution with expandable tool calls */
+type ToolCallItem =
+    | { icon: React.ComponentType<any>; text: React.ReactNode; type?: never }
+    | { type: 'thinking'; text: string; icon?: never };
+
 function PlanTask({ label, status, expanded, onToggle, toolCalls }: {
     index: number;
     label: string;
     status: 'active' | 'done';
     expanded: boolean;
     onToggle: () => void;
-    toolCalls: { icon: React.ComponentType<any>; text: React.ReactNode }[];
+    toolCalls: ToolCallItem[];
 }) {
     return (
         <div className="flex items-start gap-2.5">
@@ -855,12 +860,18 @@ function PlanTask({ label, status, expanded, onToggle, toolCalls }: {
                 </div>
                 <Collapse open={expanded}>
                     <div className="mt-2 ml-1 border-l-2 border-gray-200 pl-3 space-y-1.5 text-gray-400 text-[12.5px]">
-                        {toolCalls.map((call, i) => (
-                            <div key={i} className="flex items-center gap-2">
-                                <call.icon size={13} strokeWidth={2} />
-                                <span>{call.text}</span>
-                            </div>
-                        ))}
+                        {toolCalls.map((call, i) => {
+                            if (call.type === 'thinking') {
+                                return <TaskThinkingItem key={i} text={call.text} />;
+                            }
+                            const Icon = call.icon;
+                            return (
+                                <div key={i} className="flex items-center gap-2">
+                                    <Icon size={13} strokeWidth={2} />
+                                    <span>{call.text}</span>
+                                </div>
+                            );
+                        })}
                     </div>
                 </Collapse>
             </div>
@@ -961,6 +972,45 @@ function ThinkingBlock({ status }: { status: 'thinking' | 'done' }) {
                     <p>I'll search for HTTP service libraries first, then create a simple service with a GET endpoint that returns "Hello, World!".</p>
                     <p>I should use the existing HTTP listener if one is already configured, otherwise create a new one on port 8080.</p>
                 </div>
+            </Collapse>
+        </div>
+    );
+}
+
+/** Thinking item inside a task's tool call list — expandable in-place without extra nesting */
+function TaskThinkingItem({ text }: { text: string }) {
+    const [expanded, setExpanded] = useState(false);
+    const isActive = text === 'Thinking';
+
+    if (isActive) {
+        return (
+            <div className="flex items-center gap-2">
+                <ChevronRight size={13} strokeWidth={2} />
+                <span>
+                    Thinking
+                    <span className="inline-flex w-4">
+                        <span className="animate-[fade-dot_1.4s_ease-in-out_infinite]">.</span>
+                        <span className="animate-[fade-dot_1.4s_ease-in-out_0.2s_infinite]">.</span>
+                        <span className="animate-[fade-dot_1.4s_ease-in-out_0.4s_infinite]">.</span>
+                    </span>
+                </span>
+            </div>
+        );
+    }
+
+    return (
+        <div>
+            <div
+                className="flex items-center gap-2 cursor-pointer hover:text-gray-500 transition-colors"
+                onClick={() => setExpanded(!expanded)}
+            >
+                {expanded ? <ChevronDown size={13} strokeWidth={2} /> : <ChevronRight size={13} strokeWidth={2} />}
+                <span>{text}</span>
+            </div>
+            <Collapse open={expanded}>
+                <p className="mt-1.5 text-[12px] text-gray-300 italic leading-relaxed">
+                    I need to implement the resource function logic. The function should return "Hello, World!" as a string response for GET requests to the /world path.
+                </p>
             </Collapse>
         </div>
     );
