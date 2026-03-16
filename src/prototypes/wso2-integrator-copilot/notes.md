@@ -30,8 +30,8 @@ The input toolbar is reorganized into two logical groups:
 - **Attach** — add files or context
 - **Send / Stop** — submit or cancel
 
-![Current Input Area](img/slash-commands.png#width=270)
-![Proposed Input Area](img/new-slash-commands.png#width=280)
+![Current Input Area](img/input-area.png#width=270)
+![Proposed Input Area](img/new-input-area.png#width=280)
 
 Note: BI copilot simply hides the globe since it doesn't support web search.
 

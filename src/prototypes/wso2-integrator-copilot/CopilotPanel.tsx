@@ -324,10 +324,25 @@ export default function CopilotPanel({
                             {chatState === 'plan-complete' && (
                                 <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
                                     <p>
-                                        Perfect! I've successfully created a hello world HTTP service for you.
-                                        The service is now available at <code className="bg-gray-100 px-1 py-0.5 rounded text-[12px]">http://localhost:9090/hello/world</code> and
-                                        will return "Hello, World!" when you make a GET request to it.
+                                        Perfect! I've successfully created a hello world HTTP service for you. Here's what was changed:
                                     </p>
+                                    <div>
+                                        <strong className="text-gray-900">Summary:</strong>
+                                        <ul className="list-disc pl-5 mt-1 space-y-1 text-gray-700">
+                                            <li>Created a new HTTP service with a hello world resource function</li>
+                                            <li>
+                                                Added a <code className="bg-gray-100 px-1 py-0.5 rounded text-[12px]">GET /hello/world</code> endpoint that returns "Hello, World!"
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    <div>
+                                        The service is now ready to use. When you run it, you can access:
+                                        <ul className="list-disc pl-5 mt-1 space-y-1 text-gray-700">
+                                            <li>
+                                                <code className="bg-gray-100 px-1 py-0.5 rounded text-[12px]">GET http://localhost:9090/hello/world</code> - Returns "Hello, World!"
+                                            </li>
+                                        </ul>
+                                    </div>
 
                                     <div className="border border-gray-200 rounded-lg p-3 shadow-sm bg-white">
                                         <div className="font-semibold text-gray-900 mb-2">Changes ready to review</div>
@@ -744,7 +759,7 @@ export default function CopilotPanel({
                     </div>
                 </div>}
 
-                {chatState !== 'empty' && (
+                {chatState !== 'empty' && chatState !== 'plan-review' && chatState !== 'plan-revised' && (
                     <p className="text-[10.5px] text-gray-400 text-center mt-2">
                         AI-generated output may contain mistakes. Review before adding to your integration.
                     </p>
@@ -825,7 +840,7 @@ function PlanTask({ label, status, expanded, onToggle, toolCalls }: {
                         <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
                     </div>
                 ) : (
-                    <span className="w-2 h-2 rounded-full bg-green-500 block"></span>
+                    <span className="w-2 h-2 rounded-full bg-green-500 block animate-in fade-in zoom-in duration-300"></span>
                 )}
             </div>
             <div className="flex-1">
@@ -941,7 +956,7 @@ function ThinkingBlock({ status }: { status: 'thinking' | 'done' }) {
                 className="flex items-center gap-2 text-[12.5px] text-gray-400 hover:text-gray-600 transition-colors"
             >
                 {expanded ? <ChevronDown size={13} strokeWidth={2} /> : <ChevronRight size={13} strokeWidth={2} />}
-                <span>Thought for 5s</span>
+                <span>Thought for 3s</span>
             </button>
             <Collapse open={expanded}>
                 <div className="ml-6 mt-2 pl-3 border-l-2 border-gray-200 text-[12.5px] text-gray-400 space-y-2 leading-relaxed">
