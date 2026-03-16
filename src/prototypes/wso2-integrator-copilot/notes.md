@@ -127,8 +127,8 @@ The header has two variations — one for BI and one for MI — while sharing th
 
 [BI Header](#action-headerBI) · [MI Header](#action-headerMI)
 
-**Auth provider chip** adapts based on the user's authentication method:
-- **WSO2 Cloud** — cloud icon with an infinity symbol for unlimited usage. When limits are enforced, this can show a counter or progress indicator.
-- **Anthropic API / AWS Bedrock / Vertex AI** — key icon with the provider name. No usage info since WSO2 doesn't manage the quota for BYOK users.
+The header left side adapts based on the user's authentication method:
+- **WSO2 Cloud** — shows `Remaining Usage:` as plain text with `[Unlimited]` in a chip. When limits are enforced, the chip can show a counter like `[42 remaining]`.
+- **Anthropic API / AWS Bedrock / Vertex AI** — shows a key icon with the provider name in a chip. No usage info since WSO2 doesn't manage the quota for BYOK users.
 
 Auth providers: [WSO2 Cloud](#action-authWso2) · [Anthropic API](#action-authAnthropic) · [AWS Bedrock](#action-authBedrock) · [Vertex AI](#action-authVertex)

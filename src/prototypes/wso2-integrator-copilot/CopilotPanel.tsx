@@ -29,9 +29,7 @@ import {
     Plug,
     MoreHorizontal,
     Globe,
-    Cloud,
     Key,
-    Infinity,
     LogOut,
     MessageSquarePlus
 } from 'lucide-react';
@@ -910,35 +908,28 @@ function DiffTree() {
     );
 }
 
-const authProviderConfig: Record<string, { label: string; icon: React.ComponentType<any>; detail?: string }> = {
-    'wso2-cloud': { label: 'WSO2 Cloud', icon: Cloud, detail: 'Unlimited' },
-    'anthropic': { label: 'Anthropic API', icon: Key },
-    'aws-bedrock': { label: 'AWS Bedrock', icon: Key },
-    'vertex-ai': { label: 'Vertex AI', icon: Key },
-};
-
 function AuthProviderChip({ provider }: { provider: string }) {
-    const config = authProviderConfig[provider];
-    if (!config) return null;
-    const Icon = config.icon;
+    if (provider === 'wso2-cloud') {
+        return (
+            <div className="flex items-center gap-2 text-[12px] text-gray-500">
+                <span>Remaining Usage:</span>
+                <span className="px-2 py-0.5 bg-gray-50 border border-gray-200 rounded-md font-medium text-gray-600">
+                    Unlimited
+                </span>
+            </div>
+        );
+    }
+
+    const providers: Record<string, string> = {
+        'anthropic': 'Anthropic API',
+        'aws-bedrock': 'AWS Bedrock',
+        'vertex-ai': 'Vertex AI',
+    };
 
     return (
         <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-50 border border-gray-200 rounded-lg text-[12px] text-gray-500">
-            <Icon size={13} strokeWidth={1.5} />
-            <span className="font-medium">{config.label}</span>
-            {config.detail && (
-                <>
-                    <span className="text-gray-300">·</span>
-                    <span className="group/tip relative flex items-center gap-1 text-gray-400 cursor-default">
-                        <Infinity size={12} strokeWidth={2} />
-                        <span className="pointer-events-none absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2.5 py-1.5 text-[11px] font-medium text-gray-600 bg-white border border-gray-200 rounded-md whitespace-nowrap opacity-0 group-hover/tip:opacity-100 transition-opacity duration-150 shadow-md">
-                            Remaining Usage: Unlimited
-                            <span className="absolute bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent border-b-gray-200"></span>
-                            <span className="absolute bottom-full left-1/2 -translate-x-1/2 mt-px border-4 border-transparent border-b-white"></span>
-                        </span>
-                    </span>
-                </>
-            )}
+            <Key size={13} strokeWidth={1.5} />
+            <span className="font-medium">{providers[provider] ?? provider}</span>
         </div>
     );
 }
