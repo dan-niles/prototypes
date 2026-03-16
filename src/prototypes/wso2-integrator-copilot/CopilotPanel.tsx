@@ -3,7 +3,7 @@ import {
     Settings,
     ListX,
     Bot,
-    FilePlus,
+    Paperclip,
     Hammer,
     LayoutList,
     Send,
@@ -186,7 +186,7 @@ export default function CopilotPanel({
                                 Type <span className="font-semibold text-gray-800">/</span> to use commands
                             </p>
                             <p className="flex items-center justify-center gap-1.5">
-                                <FilePlus size={15} className="text-gray-500" strokeWidth={1.5} /> to attach context
+                                <Paperclip size={15} className="text-gray-500" strokeWidth={1.5} /> to attach context
                             </p>
                         </div>
                     </div>
@@ -737,7 +737,7 @@ export default function CopilotPanel({
                                 <span className="text-[15px] font-medium leading-none">/</span>
                             </button>
                             <button title="Attach context or files" className="w-[28px] h-[28px] flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-md transition-colors">
-                                <FilePlus size={16} strokeWidth={1.5} />
+                                <Paperclip size={16} strokeWidth={1.5} />
                             </button>
 
                             <div className="w-px h-4 bg-gray-200 mx-1"></div>
@@ -765,6 +765,12 @@ export default function CopilotPanel({
                         </div>
                     </div>
                 </div>}
+
+                {chatState !== 'empty' && (
+                    <p className="text-[10.5px] text-gray-400 text-center mt-2">
+                        AI-generated output may contain mistakes. Review before adding to your integration.
+                    </p>
+                )}
             </div>
         </div>
     );

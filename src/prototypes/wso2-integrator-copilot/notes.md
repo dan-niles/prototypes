@@ -6,7 +6,7 @@ A walkthrough of the proposed UI/UX changes for the Copilot panel in BI and MI.
 
 ## 1. Welcome Screen
 
-The welcome screen copy is updated to lead with what the tool can do for the user, while the AI disclaimer is moved to a less prominent position. This helps set a more confident first impression.
+The welcome screen copy is updated to lead with what the tool can do for the user. The AI disclaimer ("AI-generated output may contain mistakes. Review before adding to your integration.") is moved to a small text line below the input area, and only appears after the user sends their first message.
 
 Note: We can reuse the original icons currently used in BI; this prototype uses `lucide-react` icons as placeholders.
 
