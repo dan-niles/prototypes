@@ -94,6 +94,9 @@ The checkpoint indicator is simplified to a compact inline element. A restore bu
 
 Suggested prompts are styled as **card-style chips** for better visual affordance. In the future, these could be dynamic and based on the user's project context.
 
+![Current Suggestions](img/suggestions.png#width=290)
+![Proposed Suggestions](img/new-suggestions.png#width=290)
+
 [View suggestions](#action-empty)
 
 ---
