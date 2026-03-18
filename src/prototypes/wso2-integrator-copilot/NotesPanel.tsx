@@ -1,7 +1,7 @@
 import { useState, Children, isValidElement, type ComponentPropsWithoutRef, type ReactNode } from 'react';
 import ReactMarkdown from 'react-markdown';
 import notesContent from './notes.md?raw';
-import { ArrowRight, X } from 'lucide-react';
+import { ArrowRight, X, Link } from 'lucide-react';
 
 const noteImages = import.meta.glob('./img/*.*', { eager: true, import: 'default' }) as Record<string, string>;
 
@@ -28,8 +28,30 @@ export default function NotesPanel({ onAction }: NotesPanelProps) {
                 <div className="max-w-2xl mx-auto px-8 py-12">
                     <ReactMarkdown
                         components={{
-                            h1: (props: ComponentPropsWithoutRef<'h1'>) => <h1 className="text-2xl font-bold text-gray-900 mb-2" {...props} />,
-                            h2: (props: ComponentPropsWithoutRef<'h2'>) => <h2 className="text-lg font-semibold text-gray-900 mt-8 mb-3" {...props} />,
+                            h1: ({ children, ...props }: ComponentPropsWithoutRef<'h1'>) => {
+                                const id = String(children).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+                                return <h1 id={id} className="group/heading text-2xl font-bold text-gray-900 mb-2" {...props}>{children}</h1>;
+                            },
+                            h2: ({ children, ...props }: ComponentPropsWithoutRef<'h2'>) => {
+                                const id = String(children).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+                                return (
+                                    <h2 id={id} className="group/heading flex items-center gap-2 text-lg font-semibold text-gray-900 mt-8 mb-3 scroll-mt-8" {...props}>
+                                        {children}
+                                        <button
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                const url = `${window.location.origin}${window.location.pathname}#${id}`;
+                                                navigator.clipboard.writeText(url);
+                                                window.location.hash = id;
+                                            }}
+                                            className="opacity-0 group-hover/heading:opacity-100 transition-opacity text-gray-300 hover:text-gray-500"
+                                            title="Copy link to section"
+                                        >
+                                            <Link size={14} strokeWidth={2} />
+                                        </button>
+                                    </h2>
+                                );
+                            },
                             p: ({ children }: ComponentPropsWithoutRef<'p'>) => {
                                 const kids = Children.toArray(children as ReactNode);
                                 const nonWhitespace = kids.filter((child) => !(typeof child === 'string' && !child.trim()));
