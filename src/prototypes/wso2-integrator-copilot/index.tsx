@@ -10,6 +10,7 @@ export default function WSO2CopilotPrototype() {
     const [authProvider, setAuthProvider] = useState('wso2-cloud');
     const [headerMode, setHeaderMode] = useState<'bi' | 'mi'>('bi');
     const [checkpointStyle, setCheckpointStyle] = useState<'inline' | 'divider'>('divider');
+    const [openSettings, setOpenSettings] = useState(false);
 
     const handleStartGeneration = () => {
         setChatState(inputMode === 'plan' ? 'plan-generating' : 'generating');
@@ -44,6 +45,7 @@ export default function WSO2CopilotPrototype() {
             case 'checkpointInline': setCheckpointStyle('inline'); if (chatState === 'empty') handleStartGeneration(); break;
             case 'checkpointDivider': setCheckpointStyle('divider'); if (chatState === 'empty') handleStartGeneration(); break;
             case 'terminalDemo': setChatState('terminal-demo'); break;
+            case 'openSettings': setOpenSettings(true); setTimeout(() => setOpenSettings(false), 100); break;
         }
     };
 
@@ -64,6 +66,7 @@ export default function WSO2CopilotPrototype() {
                 authProvider={authProvider}
                 headerMode={headerMode}
                 checkpointStyle={checkpointStyle}
+                openSettings={openSettings}
             />
         </div>
     );

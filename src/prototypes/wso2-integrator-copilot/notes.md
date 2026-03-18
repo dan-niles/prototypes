@@ -153,7 +153,27 @@ A unified approach for running commands and testing endpoints, replacing the sep
 
 ---
 
-## 10. Header & Auth Provider
+## 10. Settings Panel
+
+Clicking "Settings" in the header opens a full-panel settings view, replacing the current BI "Manage Accounts" page and MI's settings popover with a unified design.
+
+**Main Agent Intelligence** — Normal / High toggle. Shows the underlying model name (e.g., Claude Sonnet 4.6) and a brief description of the tradeoff (quality vs quota).
+
+**Sub-Agent Intelligence** — Normal / High toggle for sub-agent tasks. Defaults to a lighter model (Claude Haiku 4.5) for efficiency.
+
+**Thinking Mode** — Extended Thinking Off/On toggle. When enabled, the AI reasons through complex problems step by step before responding.
+
+**Integrations** — GitHub Copilot authorization for inline completions.
+
+**Account** — Sign out button to end the session.
+
+The panel uses a back arrow to return to the chat, and a footer with "Reset to defaults" to restore original settings.
+
+[View settings](#action-openSettings)
+
+---
+
+## 11. Header & Auth Provider
 
 The header has two variations — one for BI and one for MI — while sharing the same auth provider chip on the left.
 

@@ -34,7 +34,8 @@ import {
     MessageSquarePlus,
     Play,
     SendHorizonal,
-    FlaskConical
+    FlaskConical,
+    ArrowLeft
 } from 'lucide-react';
 
 const slashCommands = [
@@ -59,6 +60,7 @@ interface CopilotPanelProps {
     onReset: () => void;
     authProvider: string;
     headerMode: 'bi' | 'mi';
+    openSettings?: boolean;
     checkpointStyle: 'inline' | 'divider';
 }
 
@@ -76,6 +78,7 @@ export default function CopilotPanel({
     authProvider,
     headerMode,
     checkpointStyle,
+    openSettings: openSettingsProp,
 }: CopilotPanelProps) {
     const [isChangesExpanded, setIsChangesExpanded] = useState(false);
     const [inputValue, setInputValue] = useState('');
@@ -84,6 +87,14 @@ export default function CopilotPanel({
     const [isPlanTasksExpanded, setIsPlanTasksExpanded] = useState(true);
     const [isPlanApprovedExpanded, setIsPlanApprovedExpanded] = useState(false);
     const [webSearchEnabled, setWebSearchEnabled] = useState(false);
+    const [showSettings, setShowSettings] = useState(false);
+    useEffect(() => {
+        if (openSettingsProp) setShowSettings(true);
+    }, [openSettingsProp]);
+    const [mainAgent, setMainAgent] = useState('normal');
+    const [subAgent, setSubAgent] = useState('normal');
+    const [extendedThinking, setExtendedThinking] = useState(false);
+    const [githubAuthorized, setGithubAuthorized] = useState(true);
     const [terminalStep, setTerminalStep] = useState(0);
     const isExecuting = ['generating', 'thinking', 'plan-generating', 'plan-revising', 'plan-building-1', 'plan-building-2'].includes(chatState);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -148,6 +159,124 @@ export default function CopilotPanel({
 
     return (
         <div className="w-[450px] lg:w-[500px] bg-white flex flex-col shadow-sm z-10">
+            {showSettings ? (
+                <div className="flex-1 flex flex-col overflow-y-auto">
+                    <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-100">
+                        <button
+                            onClick={() => setShowSettings(false)}
+                            className="flex items-center justify-center w-7 h-7 rounded-md text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+                        >
+                            <ArrowLeft size={16} strokeWidth={1.5} />
+                        </button>
+                        <span className="text-[14px] font-semibold text-gray-900">Settings</span>
+                    </div>
+
+                    <div className="p-5 space-y-6">
+                        {/* Main Agent Intelligence */}
+                        <div className="space-y-3">
+                            <h3 className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">Main Agent Intelligence</h3>
+                            <div className="flex bg-gray-100 rounded-lg p-0.5 border border-gray-200/50">
+                                {['normal', 'high'].map((level) => (
+                                    <button
+                                        key={level}
+                                        onClick={() => setMainAgent(level)}
+                                        className={`flex-1 px-3 py-1.5 rounded-md text-[12px] font-medium transition-all capitalize ${mainAgent === level ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
+                                    >
+                                        {level}{mainAgent === level && ' •'}
+                                    </button>
+                                ))}
+                            </div>
+                            <div className="text-[11px] text-gray-400 space-y-0.5">
+                                <p>{mainAgent === 'normal' ? 'Balanced quality, speed, and quota usage for everyday requests.' : 'Maximum reasoning capability for complex tasks. Higher quota usage.'}</p>
+                                <p className="font-medium text-gray-500">Uses Claude {mainAgent === 'normal' ? 'Sonnet 4.6' : 'Opus 4.6'}</p>
+                            </div>
+                        </div>
+
+                        {/* Sub-Agent Intelligence */}
+                        <div className="space-y-3">
+                            <h3 className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">Sub-Agent Intelligence</h3>
+                            <div className="flex bg-gray-100 rounded-lg p-0.5 border border-gray-200/50">
+                                {['normal', 'high'].map((level) => (
+                                    <button
+                                        key={level}
+                                        onClick={() => setSubAgent(level)}
+                                        className={`flex-1 px-3 py-1.5 rounded-md text-[12px] font-medium transition-all capitalize ${subAgent === level ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
+                                    >
+                                        {level}{subAgent === level && ' •'}
+                                    </button>
+                                ))}
+                            </div>
+                            <div className="text-[11px] text-gray-400 space-y-0.5">
+                                <p>{subAgent === 'normal' ? 'Fast and lightweight for routine sub-agent work.' : 'Higher quality sub-agent responses. Moderate quota usage.'}</p>
+                                <p className="font-medium text-gray-500">Uses Claude {subAgent === 'normal' ? 'Haiku 4.5' : 'Sonnet 4.6'}</p>
+                            </div>
+                        </div>
+
+                        {/* Thinking Mode */}
+                        <div className="space-y-3">
+                            <h3 className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">Thinking Mode</h3>
+                            <div className="flex items-center justify-between">
+                                <span className="text-[13px] text-gray-800">Extended Thinking</span>
+                                <div className="flex bg-gray-100 rounded-lg p-0.5 border border-gray-200/50">
+                                    <button
+                                        onClick={() => setExtendedThinking(false)}
+                                        className={`px-3 py-1 rounded-md text-[12px] font-medium transition-all ${!extendedThinking ? 'bg-gray-500 text-white shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
+                                    >
+                                        Off
+                                    </button>
+                                    <button
+                                        onClick={() => setExtendedThinking(true)}
+                                        className={`px-3 py-1 rounded-md text-[12px] font-medium transition-all ${extendedThinking ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
+                                    >
+                                        On
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Integrations */}
+                        <div className="space-y-3">
+                            <h3 className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">Integrations</h3>
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-[13px] text-gray-800">GitHub Copilot</p>
+                                    <p className="text-[11px] text-gray-400 mt-0.5">Enable inline completions via GitHub Copilot</p>
+                                </div>
+                                <button
+                                    onClick={() => setGithubAuthorized(!githubAuthorized)}
+                                    className={`px-3 py-1 rounded-md text-[12px] font-medium transition-colors shrink-0 ml-4 ${githubAuthorized ? 'text-green-700 bg-green-50 border border-green-200' : 'text-blue-700 bg-blue-50 border border-blue-200 hover:bg-blue-100'}`}
+                                >
+                                    {githubAuthorized ? 'Authorized' : 'Authorize'}
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Account */}
+                        <div className="space-y-3">
+                            <h3 className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">Account</h3>
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-[13px] text-gray-800">Sign out</p>
+                                    <p className="text-[11px] text-gray-400 mt-0.5">End your session and disconnect from AI services</p>
+                                </div>
+                                <button className="flex items-center gap-1.5 px-3 py-1 rounded-md text-[12px] font-medium text-red-600 bg-red-50 border border-red-200 hover:bg-red-100 transition-colors shrink-0 ml-4">
+                                    <LogOut size={12} strokeWidth={1.5} />
+                                    Sign out
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="mt-auto px-5 py-3 border-t border-gray-100 flex items-center justify-between text-[11px] text-gray-400">
+                        <span>Settings persist across sessions</span>
+                        <button className="flex items-center gap-1 text-blue-600 hover:text-blue-700 font-medium transition-colors">
+                            <RotateCcw size={11} strokeWidth={2} />
+                            Reset to defaults
+                        </button>
+                    </div>
+                </div>
+            ) : (
+            <>
             {/* Header */}
             <div className="flex justify-between items-center px-4 py-3 border-b border-gray-100 text-[13px] text-gray-600 shrink-0 bg-white">
                 <AuthProviderChip provider={authProvider} />
@@ -163,7 +292,10 @@ export default function CopilotPanel({
                                     <span>Clear</span>
                                 </button>
                             )}
-                            <button className="flex items-center gap-1.5 hover:text-gray-900 transition-colors">
+                            <button
+                                onClick={() => setShowSettings(true)}
+                                className="flex items-center gap-1.5 hover:text-gray-900 transition-colors"
+                            >
                                 <Settings size={15} strokeWidth={1.5} />
                                 <span>Settings</span>
                             </button>
@@ -178,9 +310,12 @@ export default function CopilotPanel({
                                 <span>New Chat</span>
                                 <ChevronDown size={12} strokeWidth={2} className="text-gray-400" />
                             </button>
-                            <button className="flex items-center gap-1.5 hover:text-gray-900 transition-colors">
-                                <LogOut size={14} strokeWidth={1.5} />
-                                <span>Logout</span>
+                            <button
+                                onClick={() => setShowSettings(true)}
+                                className="flex items-center gap-1.5 hover:text-gray-900 transition-colors"
+                            >
+                                <Settings size={15} strokeWidth={1.5} />
+                                <span>Settings</span>
                             </button>
                         </>
                     )}
@@ -855,6 +990,8 @@ export default function CopilotPanel({
                     </p>
                 )}
             </div>
+            </>
+            )}
         </div>
     );
 }
