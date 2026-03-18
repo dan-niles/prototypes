@@ -33,7 +33,6 @@ import {
     LogOut,
     MessageSquarePlus,
     Play,
-    FileText,
     SendHorizonal,
     FlaskConical
 } from 'lucide-react';
