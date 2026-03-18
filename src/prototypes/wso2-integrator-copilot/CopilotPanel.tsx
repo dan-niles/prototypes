@@ -31,7 +31,11 @@ import {
     Globe,
     Key,
     LogOut,
-    MessageSquarePlus
+    MessageSquarePlus,
+    Play,
+    FileText,
+    SendHorizonal,
+    FlaskConical
 } from 'lucide-react';
 
 const slashCommands = [
@@ -81,6 +85,7 @@ export default function CopilotPanel({
     const [isPlanTasksExpanded, setIsPlanTasksExpanded] = useState(true);
     const [isPlanApprovedExpanded, setIsPlanApprovedExpanded] = useState(false);
     const [webSearchEnabled, setWebSearchEnabled] = useState(false);
+    const [terminalStep, setTerminalStep] = useState(0);
     const isExecuting = ['generating', 'thinking', 'plan-generating', 'plan-revising', 'plan-building-1', 'plan-building-2'].includes(chatState);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const slashMenuRefs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -116,6 +121,19 @@ export default function CopilotPanel({
         }
     }, [chatState, setChatState]);
 
+    // Terminal demo auto-advance
+    useEffect(() => {
+        if (chatState === 'terminal-demo' && terminalStep === 0) {
+            setTerminalStep(1);
+            return;
+        }
+        if (chatState !== 'terminal-demo') return;
+        if (terminalStep >= 9) return;
+        const delays = [0, 1200, 1800, 1500, 2000, 1200, 1800, 1500, 2000];
+        const timer = setTimeout(() => setTerminalStep((s) => s + 1), delays[terminalStep] || 1500);
+        return () => clearTimeout(timer);
+    }, [chatState, terminalStep]);
+
     const handleStartGeneration = () => {
         onStartGeneration();
         setInputValue('');
@@ -126,6 +144,7 @@ export default function CopilotPanel({
         setIsChangesExpanded(false);
         setInputValue('');
         setActiveCommand(null);
+        setTerminalStep(0);
     };
 
     return (
@@ -188,6 +207,78 @@ export default function CopilotPanel({
                             <p className="flex items-center justify-center gap-1.5">
                                 <Paperclip size={15} className="text-gray-500" strokeWidth={1.5} /> to attach context
                             </p>
+                        </div>
+                    </div>
+                ) : chatState === 'terminal-demo' ? (
+                    /* --- TERMINAL DEMO --- */
+                    <div className={`space-y-5 animate-in fade-in duration-300 ${checkpointStyle === 'divider' ? 'group/turn' : ''}`}>
+                        <CheckpointIndicator style={checkpointStyle} onRestore={handleReset} />
+
+                        <div className="flex justify-end">
+                            <div className="bg-[#E2E8F0]/60 text-gray-800 text-[13px] px-4 py-2.5 rounded-xl rounded-tr-sm max-w-[85%]">
+                                run the service and test it
+                            </div>
+                        </div>
+
+                        <div className="text-[13px] text-gray-800 space-y-4 leading-relaxed">
+                            {/* Step 1: Intro text */}
+                            {terminalStep >= 1 && (
+                                <p><Typewriter text="I'll run your service and test the hello world endpoint." /></p>
+                            )}
+
+                            {/* Step 2: Run service (starts as running) */}
+                            {terminalStep >= 2 && (
+                                <TerminalCard
+                                    title="Build and run the service"
+                                    icon={Play}
+                                    command="bal run"
+                                    status={terminalStep <= 2 ? 'running' : 'success'}
+                                    statusText={terminalStep <= 2 ? 'Running...' : 'Service started'}
+                                    output={`Compiling source\n    danniles/MathTutor:0.1.0\n\nRunning executable\n\n[ballerina/http] started HTTP/WS listener\n0.0.0.0:8080`}
+                                />
+                            )}
+
+                            {/* Step 3: Service running text */}
+                            {terminalStep >= 4 && (
+                                <p><Typewriter text="Service is running. Let me test the endpoint:" /></p>
+                            )}
+
+                            {/* Step 4: HTTP test */}
+                            {terminalStep >= 5 && (
+                                <HttpTestCard
+                                    status={terminalStep <= 5 ? 'running' : 'success'}
+                                    endpoints={[
+                                        { method: 'GET', path: '/hello/world', statusCode: 200, response: `{\n    "message": "Hello, World!"\n}` },
+                                        { method: 'POST', path: '/MathTutor/chat', statusCode: 200, response: `{\n    "answer": "2 + 2 = 4"\n}` },
+                                    ]}
+                                />
+                            )}
+
+                            {/* Step 5: Success text */}
+                            {terminalStep >= 7 && (
+                                <p>
+                                    <Typewriter text="The endpoint is returning the expected response. Let me also run the tests:" />
+                                </p>
+                            )}
+
+                            {/* Step 6: Run tests */}
+                            {terminalStep >= 8 && (
+                                <TerminalCard
+                                    title="Run tests"
+                                    icon={FlaskConical}
+                                    command="bal test"
+                                    status={terminalStep <= 8 ? 'running' : 'success'}
+                                    statusText={terminalStep <= 8 ? 'Running tests...' : '1 passing, 0 failing'}
+                                    output={`Compiling source\n    danniles/MathTutor:0.1.0\n\nRunning Tests\n\n    [pass] testHelloWorld\n\n    1 passing\n    0 failing`}
+                                />
+                            )}
+
+                            {/* Step 7: All done */}
+                            {terminalStep >= 9 && (
+                                <p>
+                                    <Typewriter text="All tests are passing. Your hello world HTTP service is ready to use." />
+                                </p>
+                            )}
                         </div>
                     </div>
                 ) : isPlanState(chatState) ? (
@@ -901,6 +992,126 @@ function DiffTree() {
             </div>
         </div>
     );
+}
+
+/** Unified terminal card for running commands and showing output */
+function TerminalCard({ title, icon: Icon, command, output, status, statusText }: {
+    title: React.ReactNode;
+    icon?: React.ComponentType<any>;
+    command: string;
+    output: string;
+    status: 'running' | 'success' | 'error';
+    statusText?: string;
+}) {
+    const [expanded, setExpanded] = useState(false);
+    const prevStatusRef = useRef(status);
+
+    // Auto-expand on error
+    useEffect(() => {
+        if (prevStatusRef.current === 'running' && status === 'error') {
+            setExpanded(true);
+        }
+        prevStatusRef.current = status;
+    }, [status]);
+
+    const label = statusText || (status === 'running' ? 'Running...' : status === 'success' ? 'Completed' : 'Failed');
+
+    return (
+        <div className="border border-gray-200 rounded-lg overflow-hidden text-[12.5px] animate-in fade-in duration-300">
+            <button
+                onClick={() => status !== 'running' && setExpanded(!expanded)}
+                className={`flex items-center gap-2.5 w-full px-3 py-2.5 transition-colors ${status !== 'running' ? 'hover:bg-gray-50 cursor-pointer' : 'cursor-default'}`}
+            >
+                {Icon && <Icon size={15} strokeWidth={1.5} className="text-gray-400 shrink-0" />}
+                <span className="flex-1 text-left text-[12.5px] text-gray-700">{title}</span>
+                <span className={`text-[11.5px] ${status === 'error' ? 'text-red-500' : 'text-gray-400'}`}>
+                    {label}
+                </span>
+                {status !== 'running' && (
+                    <ChevronDown size={12} className={`text-gray-400 transition-transform shrink-0 ${expanded ? 'rotate-0' : '-rotate-90'}`} />
+                )}
+            </button>
+
+            {/* Expandable details — command + output */}
+            <Collapse open={expanded}>
+                <div className="border-t border-gray-200 bg-gray-50 font-mono text-[11px] text-gray-600 leading-relaxed">
+                    <div className="flex items-center gap-2 px-3 py-1.5 border-b border-gray-200/60">
+                        <span className="text-green-600 select-none">$</span>
+                        <span className="text-gray-700">{command}</span>
+                    </div>
+                    <div className="px-3 py-2 max-h-[150px] overflow-y-auto">
+                        <pre className="whitespace-pre-wrap">{output}</pre>
+                    </div>
+                </div>
+            </Collapse>
+        </div>
+    );
+}
+
+/** HTTP test card — shows endpoint results with expandable responses */
+function HttpTestCard({ status, endpoints }: {
+    status: 'running' | 'success' | 'error';
+    endpoints: { method: string; path: string; statusCode: number; response: string }[];
+}) {
+    const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+
+    return (
+        <div className="border border-gray-200 rounded-lg overflow-hidden text-[12.5px] animate-in fade-in duration-300">
+            {/* Header */}
+            <div className="flex items-center gap-2.5 px-3 py-2.5">
+                <SendHorizonal size={15} strokeWidth={1.5} className="text-gray-400 shrink-0" />
+                <span className="text-gray-700">HTTP Request</span>
+                {status === 'running' && <span className="text-[11px] text-gray-400">Running...</span>}
+            </div>
+
+            {/* Endpoint list */}
+            {status !== 'running' && (
+                <div className="border-t border-gray-100">
+                    {endpoints.map((ep, i) => {
+                        const isExpanded = expandedIndex === i;
+                        const isError = ep.statusCode >= 400;
+                        return (
+                            <div key={i} className="border-b border-gray-100 last:border-b-0">
+                                <button
+                                    onClick={() => setExpandedIndex(isExpanded ? null : i)}
+                                    className="flex items-center gap-2.5 w-full px-3 py-2 hover:bg-gray-50 transition-colors"
+                                >
+                                    {isError && <X size={13} strokeWidth={2} className="text-red-500 shrink-0" />}
+                                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded text-white shrink-0 ${ep.method === 'GET' ? 'bg-blue-500' : ep.method === 'POST' ? 'bg-green-500' : ep.method === 'PUT' ? 'bg-amber-500' : ep.method === 'DELETE' ? 'bg-red-500' : 'bg-gray-500'}`}>
+                                        {ep.method}
+                                    </span>
+                                    <span className="flex-1 text-left text-[12px] text-gray-600 font-mono">{ep.path}</span>
+                                    <span className={`text-[11.5px] font-mono ${isError ? 'text-red-500' : 'text-gray-400'}`}>{ep.statusCode}</span>
+                                    <ChevronDown size={12} className={`text-gray-400 transition-transform ${isExpanded ? 'rotate-0' : '-rotate-90'}`} />
+                                </button>
+                                <Collapse open={isExpanded}>
+                                    <div className="px-3 py-2 bg-gray-50 border-t border-gray-100">
+                                        <pre className="font-mono text-[11px] text-gray-600 whitespace-pre-wrap">{ep.response}</pre>
+                                    </div>
+                                </Collapse>
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+        </div>
+    );
+}
+
+/** Typewriter text reveal effect */
+function Typewriter({ text, speed = 20 }: { text: string; speed?: number }) {
+    const [displayed, setDisplayed] = useState('');
+    useEffect(() => {
+        setDisplayed('');
+        let i = 0;
+        const interval = setInterval(() => {
+            i++;
+            setDisplayed(text.slice(0, i));
+            if (i >= text.length) clearInterval(interval);
+        }, speed);
+        return () => clearInterval(interval);
+    }, [text, speed]);
+    return <>{displayed}</>;
 }
 
 function AuthProviderChip({ provider }: { provider: string }) {

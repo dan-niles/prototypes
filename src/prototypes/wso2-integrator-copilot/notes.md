@@ -128,7 +128,32 @@ Thinking can appear at two levels:
 
 ---
 
-## 9. Header & Auth Provider
+## 9. Terminal & HTTP Execution
+
+A unified approach for running commands and testing endpoints, replacing the separate "Running Program" / "Service Logs" cards in BI and the "Shell" card in MI.
+
+**Bash Tool Card** — for running commands (`bal run`, `bal test`, etc.):
+- Compact single-line view by default: icon + title + status text
+- Title describes the *intent* (e.g., "Build and run the service"), not the command
+- Terminal output is hidden behind an expand — low-code users see the result, pro-code users can drill into details
+- Contextual icons: Play for running, Flask for tests
+- Auto-expands on error so failures are immediately visible
+
+![Bash Tool Card](img/bash-tool.png#width=300)
+
+**HTTP Test Card** — for testing endpoints:
+- Shows a list of endpoints with method badge (`GET`, `POST`), path, and status code
+- Each row expands to reveal the response body
+- No success icons — only shows error icon for failed requests (4xx/5xx)
+- Status codes are gray for success, red for errors
+
+![Testing Services](img/test-services.png#width=300)
+
+[View terminal demo](#action-terminalDemo)
+
+---
+
+## 10. Header & Auth Provider
 
 The header has two variations — one for BI and one for MI — while sharing the same auth provider chip on the left.
 

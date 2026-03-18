@@ -43,6 +43,7 @@ export default function WSO2CopilotPrototype() {
             case 'thoughtComplete': setChatState('thought-complete'); break;
             case 'checkpointInline': setCheckpointStyle('inline'); if (chatState === 'empty') handleStartGeneration(); break;
             case 'checkpointDivider': setCheckpointStyle('divider'); if (chatState === 'empty') handleStartGeneration(); break;
+            case 'terminalDemo': setChatState('terminal-demo'); break;
         }
     };
 
