@@ -11,6 +11,8 @@ export default function WSO2CopilotPrototype() {
     const [headerMode, setHeaderMode] = useState<'bi' | 'mi'>('bi');
     const [checkpointStyle, setCheckpointStyle] = useState<'inline' | 'divider'>('divider');
     const [openSettings, setOpenSettings] = useState(false);
+    const [openExtensions, setOpenExtensions] = useState(false);
+    const [openSkills, setOpenSkills] = useState(false);
 
     const handleStartGeneration = () => {
         setChatState(inputMode === 'plan' ? 'plan-generating' : 'generating');
@@ -46,6 +48,9 @@ export default function WSO2CopilotPrototype() {
             case 'checkpointDivider': setCheckpointStyle('divider'); if (chatState === 'empty') handleStartGeneration(); break;
             case 'terminalDemo': setChatState('terminal-demo'); break;
             case 'openSettings': setOpenSettings(true); setTimeout(() => setOpenSettings(false), 100); break;
+            case 'openExtensions': setOpenExtensions(true); setTimeout(() => setOpenExtensions(false), 100); break;
+            case 'openSkills': setOpenSkills(true); setTimeout(() => setOpenSkills(false), 100); break;
+            case 'extensionsDemo': setChatState('extensions-demo'); break;
         }
     };
 
@@ -67,6 +72,8 @@ export default function WSO2CopilotPrototype() {
                 headerMode={headerMode}
                 checkpointStyle={checkpointStyle}
                 openSettings={openSettings}
+                openExtensions={openExtensions}
+                openSkills={openSkills}
             />
         </div>
     );

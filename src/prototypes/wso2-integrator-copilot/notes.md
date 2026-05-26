@@ -188,3 +188,31 @@ The header left side adapts based on the user's authentication method:
 - **Anthropic API / AWS Bedrock / Vertex AI** — shows a key icon with the provider name in a chip. No usage info since WSO2 doesn't manage the quota for BYOK users.
 
 Auth providers: [WSO2 Cloud](#action-authWso2) · [Anthropic API](#action-authAnthropic) · [AWS Bedrock](#action-authBedrock) · [Vertex AI](#action-authVertex)
+
+---
+
+## 12. Extensions — MCP Servers & Skills
+
+Users can extend the copilot with **MCP servers** (connections to external tools and data) and **Skills** (reusable instruction bundles). This aligns with the structure the engineering team has already built, with some UI/UX refinements layered on top.
+
+Both live under a **Customize Copilot** section in Settings, as two separate drill-in rows — each showing a live summary (e.g. `1/4 connected · 14 tools`) so you can see state without opening the page.
+
+[View settings](#action-openSettings)
+
+**MCP Servers page** — servers are grouped by **scope**:
+- **Project** — defined in the project's `.mcp.json`; used only with this project.
+- **User** — available across all your projects.
+
+Each scope has a group toggle and a shortcut to open its `.mcp.json` in the editor. Server cards use a **status dot** (connected / disabled / error / needs-login) rather than a per-server glyph, a subtitle like `stdio · 14 tools`, an expandable **Tools (N)** list, an enable toggle, and **Edit / Delete**. The page header has a refresh control and **Add server**.
+
+*Improvements over the current build:* richer status states (not just on/off), scope helper text, and more compact cards. **Add server** opens a modal over the list — Scope, Name, Transport (Stdio/HTTP), with Command + Arguments + Environment variables, or URL + Headers.
+
+[Open MCP servers](#action-openExtensions)
+
+**Skills page** — grouped into **Built-in** (the existing slash commands like `/openapi`, `/datamap`) and **Custom**, each with an enable toggle and a "triggers when…" hint. Add via *Create new* or *Import* a skill folder. (The current build lists Skills as "coming soon"; this prototype proposes the full design.)
+
+[Open Skills](#action-openSkills)
+
+When the copilot actually uses an extension, it's surfaced inline in the conversation — reusing the tool-call icon style from §5. MCP tool calls are tagged with their server, and an active skill shows a small pill.
+
+[View extensions in chat](#action-extensionsDemo)

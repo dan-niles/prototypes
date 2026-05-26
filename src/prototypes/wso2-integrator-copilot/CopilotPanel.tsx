@@ -35,7 +35,13 @@ import {
     Play,
     SendHorizonal,
     FlaskConical,
-    ArrowLeft
+    ArrowLeft,
+    Plus,
+    Trash2,
+    Wrench,
+    Download,
+    Pencil,
+    RefreshCw
 } from 'lucide-react';
 
 const slashCommands = [
@@ -61,6 +67,8 @@ interface CopilotPanelProps {
     authProvider: string;
     headerMode: 'bi' | 'mi';
     openSettings?: boolean;
+    openExtensions?: boolean;
+    openSkills?: boolean;
     checkpointStyle: 'inline' | 'divider';
 }
 
@@ -79,6 +87,8 @@ export default function CopilotPanel({
     headerMode,
     checkpointStyle,
     openSettings: openSettingsProp,
+    openExtensions: openExtensionsProp,
+    openSkills: openSkillsProp,
 }: CopilotPanelProps) {
     const [isChangesExpanded, setIsChangesExpanded] = useState(false);
     const [inputValue, setInputValue] = useState('');
@@ -91,6 +101,18 @@ export default function CopilotPanel({
     useEffect(() => {
         if (openSettingsProp) setShowSettings(true);
     }, [openSettingsProp]);
+    const [extPage, setExtPage] = useState<'none' | 'mcp' | 'skills'>('none');
+    useEffect(() => {
+        if (openExtensionsProp) setExtPage('mcp');
+    }, [openExtensionsProp]);
+    useEffect(() => {
+        if (openSkillsProp) setExtPage('skills');
+    }, [openSkillsProp]);
+    const [servers, setServers] = useState<McpServer[]>(INITIAL_SERVERS);
+    const [skills, setSkills] = useState<Skill[]>(INITIAL_SKILLS);
+    const mcpConnected = servers.filter((s) => s.enabled && s.status === 'connected');
+    const mcpToolCount = mcpConnected.reduce((n, s) => n + s.tools.length, 0);
+    const skillsEnabled = skills.filter((s) => s.enabled).length;
     const [mainAgent, setMainAgent] = useState('normal');
     const [subAgent, setSubAgent] = useState('normal');
     const [extendedThinking, setExtendedThinking] = useState(false);
@@ -172,6 +194,9 @@ export default function CopilotPanel({
                     </div>
 
                     <div className="p-5 space-y-6">
+                        {/* Agent intelligence & thinking — MI only */}
+                        {headerMode === 'mi' && (
+                        <>
                         {/* Main Agent Intelligence */}
                         <div className="space-y-3">
                             <h3 className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">Main Agent Intelligence</h3>
@@ -234,6 +259,38 @@ export default function CopilotPanel({
                             </div>
                         </div>
 
+                        </>
+                        )}
+
+                        {/* Customize Copilot */}
+                        <div className="space-y-3">
+                            <h3 className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">Customize Copilot</h3>
+                            <div className="border border-gray-200 rounded-lg overflow-hidden divide-y divide-gray-100">
+                                <button
+                                    onClick={() => { setShowSettings(false); setExtPage('mcp'); }}
+                                    className="flex items-center gap-3 w-full px-3 py-3 hover:bg-gray-50 transition-colors text-left"
+                                >
+                                    <McpIcon size={18} className="text-gray-500 shrink-0" />
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-[13px] font-medium text-gray-900">MCP servers</p>
+                                        <p className="text-[11.5px] text-gray-400 mt-0.5">{mcpConnected.length}/{servers.length} connected · {mcpToolCount} tools</p>
+                                    </div>
+                                    <ChevronRight size={16} strokeWidth={1.5} className="text-gray-300 shrink-0" />
+                                </button>
+                                <button
+                                    onClick={() => { setShowSettings(false); setExtPage('skills'); }}
+                                    className="flex items-center gap-3 w-full px-3 py-3 hover:bg-gray-50 transition-colors text-left"
+                                >
+                                    <Sparkles size={18} strokeWidth={1.5} className="text-gray-500 shrink-0" />
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-[13px] font-medium text-gray-900">Skills</p>
+                                        <p className="text-[11.5px] text-gray-400 mt-0.5">{skillsEnabled} of {skills.length} enabled</p>
+                                    </div>
+                                    <ChevronRight size={16} strokeWidth={1.5} className="text-gray-300 shrink-0" />
+                                </button>
+                            </div>
+                        </div>
+
                         {/* Integrations */}
                         <div className="space-y-3">
                             <h3 className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">Integrations</h3>
@@ -244,7 +301,7 @@ export default function CopilotPanel({
                                 </div>
                                 <button
                                     onClick={() => setGithubAuthorized(!githubAuthorized)}
-                                    className={`px-3 py-1 rounded-md text-[12px] font-medium transition-colors shrink-0 ml-4 ${githubAuthorized ? 'text-green-700 bg-green-50 border border-green-200' : 'text-blue-700 bg-blue-50 border border-blue-200 hover:bg-blue-100'}`}
+                                    className={`px-3 py-1.5 rounded-md text-[12px] font-medium transition-colors shrink-0 ml-4 ${githubAuthorized ? 'text-green-700 bg-green-50 border border-green-200' : 'text-white bg-blue-600 hover:bg-blue-700'}`}
                                 >
                                     {githubAuthorized ? 'Authorized' : 'Authorize'}
                                 </button>
@@ -275,6 +332,10 @@ export default function CopilotPanel({
                         </button>
                     </div>
                 </div>
+            ) : extPage === 'mcp' ? (
+                <McpServersPage servers={servers} setServers={setServers} onBack={() => { setExtPage('none'); setShowSettings(true); }} />
+            ) : extPage === 'skills' ? (
+                <SkillsPage skills={skills} setSkills={setSkills} onBack={() => { setExtPage('none'); setShowSettings(true); }} />
             ) : (
             <>
             {/* Header */}
@@ -413,6 +474,51 @@ export default function CopilotPanel({
                                     <Typewriter text="All tests are passing. Your hello world HTTP service is ready to use." />
                                 </p>
                             )}
+                        </div>
+                    </div>
+                ) : chatState === 'extensions-demo' ? (
+                    /* --- EXTENSIONS IN-CHAT SURFACING DEMO --- */
+                    <div className={`space-y-5 animate-in fade-in duration-300 ${checkpointStyle === 'divider' ? 'group/turn' : ''}`}>
+                        <CheckpointIndicator style={checkpointStyle} onRestore={handleReset} />
+
+                        <div className="flex justify-end">
+                            <div className="bg-[#E2E8F0]/60 text-gray-800 text-[13px] px-4 py-2.5 rounded-xl rounded-tr-sm max-w-[85%]">
+                                find a Salesforce connector and open a GitHub issue to track the integration
+                            </div>
+                        </div>
+
+                        <div className="text-[13px] text-gray-800 space-y-4 leading-relaxed">
+                            <p>I'll look up the Salesforce connector and create a tracking issue for you.</p>
+
+                            {/* Active skill */}
+                            <div>
+                                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-blue-50 border border-blue-200 text-blue-700 text-[12px] font-medium rounded-md">
+                                    <Sparkles size={11} strokeWidth={2} />
+                                    Skill: Integration Patterns
+                                </span>
+                            </div>
+
+                            {/* MCP tool calls — tagged with their server */}
+                            <div className="space-y-2 text-gray-400 text-[12.5px]">
+                                <div className="flex items-center gap-2">
+                                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-gray-100 rounded text-[11px] text-gray-500 font-medium shrink-0">
+                                        <McpIcon size={11} className="shrink-0" />
+                                        wso2-connectors
+                                    </span>
+                                    <span>Found Salesforce connector <span className="font-medium text-gray-500">(v4.1.0)</span></span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-gray-100 rounded text-[11px] text-gray-500 font-medium shrink-0">
+                                        <McpIcon size={11} className="shrink-0" />
+                                        github
+                                    </span>
+                                    <span>Created issue <span className="font-medium text-gray-500">#1042</span></span>
+                                </div>
+                            </div>
+
+                            <p>
+                                I found the <span className="font-medium">Salesforce connector (v4.1.0)</span> in the WSO2 catalog and opened <span className="font-medium">issue #1042</span> to track the work. Want me to scaffold the connection config next?
+                            </p>
                         </div>
                     </div>
                 ) : isPlanState(chatState) ? (
@@ -1388,3 +1494,534 @@ function CheckpointIndicator({ style, onRestore }: { style: 'inline' | 'divider'
         </div>
     );
 }
+
+/* ───────────────────────── Extensions ───────────────────────── */
+
+/** MCP logo (mingcute/mcp-line), inlined to avoid an icon dependency */
+function McpIcon({ size = 16, className = '' }: { size?: number; className?: string }) {
+    return (
+        <svg width={size} height={size} viewBox="0 0 24 24" className={className} aria-hidden="true">
+            <path fill="currentColor" d="M9.112 3.161a4.498 4.498 0 0 1 7.65 3.658a4.5 4.5 0 0 1 3.662 7.656l-5.303 5.304l.707.707a1 1 0 1 1-1.414 1.414l-.707-.707a2 2 0 0 1 0-2.83l5.304-5.302a2.5 2.5 0 0 0-3.536-3.536l-3.889 3.89a1 1 0 0 1-1.173.178l-.004-.002a1 1 0 0 1-.242-1.593l3.89-3.89a2.498 2.498 0 0 0-3.53-3.533l-6.013 6.013A1 1 0 0 1 3.1 9.173zm2.474 2.475A1 1 0 0 1 13 7.05l-3.89 3.89a2.5 2.5 0 0 0 3.537 3.535l3.888-3.889A1 1 0 1 1 17.95 12l-3.888 3.889a4.5 4.5 0 0 1-6.365-6.364z" />
+        </svg>
+    );
+}
+
+/** iOS-style toggle switch */
+function Switch({ checked, onChange, disabled }: { checked: boolean; onChange: () => void; disabled?: boolean }) {
+    return (
+        <button
+            onClick={(e) => { e.stopPropagation(); if (!disabled) onChange(); }}
+            disabled={disabled}
+            className={`relative inline-flex h-[18px] w-[32px] items-center rounded-full transition-colors shrink-0 ${checked ? 'bg-blue-600' : 'bg-gray-200'} ${disabled ? 'opacity-40 cursor-not-allowed' : ''}`}
+        >
+            <span className={`inline-block h-[14px] w-[14px] transform rounded-full bg-white shadow transition-transform ${checked ? 'translate-x-[16px]' : 'translate-x-[2px]'}`} />
+        </button>
+    );
+}
+
+type ServerStatus = 'connected' | 'needs-auth' | 'error' | 'disabled';
+type ServerScope = 'project' | 'user';
+
+interface McpServer {
+    id: string;
+    name: string;
+    scope: ServerScope;
+    transportType: string;
+    command: string;
+    tools: string[];
+    status: ServerStatus;
+    enabled: boolean;
+    error?: string;
+}
+
+interface Skill {
+    id: string;
+    name: string;
+    description: string;
+    trigger: string;
+    source: 'Built-in' | 'Custom';
+    enabled: boolean;
+}
+
+const FILESYSTEM_TOOLS = ['read_file', 'read_text_file', 'read_media_file', 'read_multiple_files', 'write_file', 'edit_file', 'create_directory', 'list_directory', 'list_directory_with_sizes', 'directory_tree', 'move_file', 'search_files', 'get_file_info', 'list_allowed_directories'];
+
+const INITIAL_SERVERS: McpServer[] = [
+    { id: 'filesystem', name: 'filesystem', scope: 'project', transportType: 'stdio', command: 'npx -y @modelcontextprotocol/server-filesystem', tools: FILESYSTEM_TOOLS, status: 'connected', enabled: true },
+    { id: 'excalidraw', name: 'excalidraw', scope: 'user', transportType: 'stdio', command: 'npx -y mcp-excalidraw', tools: ['create_element', 'update_element', 'get_scene', 'export_png', 'clear_canvas', 'list_elements'], status: 'connected', enabled: false },
+    { id: 'everything', name: 'everything', scope: 'user', transportType: 'stdio', command: 'npx -y @modelcontextprotocol/server-everything', tools: ['echo', 'add', 'longRunningOperation', 'sampleLLM', 'getTinyImage', 'printEnv', 'annotatedMessage', 'getResourceReference', 'startElicitation'], status: 'connected', enabled: false },
+    { id: 'ballerina-library', name: 'ballerina-library', scope: 'user', transportType: 'stdio', command: 'bal mcp library', tools: ['search_library', 'get_module_docs', 'list_modules'], status: 'connected', enabled: false },
+];
+
+const INITIAL_SKILLS: Skill[] = [
+    { id: 'openapi', name: 'OpenAPI Import', description: 'Scaffold services from an OpenAPI specification', trigger: 'you run /openapi or attach an OpenAPI file', source: 'Built-in', enabled: true },
+    { id: 'datamap', name: 'Data Mapper', description: 'Generate data mappings between record types', trigger: 'you run /datamap or describe a transformation', source: 'Built-in', enabled: true },
+    { id: 'typecreator', name: 'Type Creator', description: 'Create custom Ballerina types from samples', trigger: 'you run /typecreator', source: 'Built-in', enabled: false },
+    { id: 'eip', name: 'Integration Patterns', description: 'Apply enterprise integration patterns idiomatically', trigger: 'building routing, aggregation, or messaging flows', source: 'Custom', enabled: true },
+];
+
+function effectiveStatus(server: McpServer): ServerStatus {
+    return server.enabled ? server.status : 'disabled';
+}
+
+function statusDotColor(status: ServerStatus) {
+    return status === 'connected' ? 'bg-green-500' : status === 'error' ? 'bg-red-500' : status === 'needs-auth' ? 'bg-amber-500' : 'bg-gray-300';
+}
+
+/** MCP Servers management page — grouped by scope (project / user) */
+function McpServersPage({ servers, setServers, onBack }: {
+    servers: McpServer[];
+    setServers: React.Dispatch<React.SetStateAction<McpServer[]>>;
+    onBack: () => void;
+}) {
+    const [adding, setAdding] = useState<null | { scope: ServerScope }>(null);
+    const [collapsed, setCollapsed] = useState<Set<ServerScope>>(new Set());
+    const [refreshing, setRefreshing] = useState(false);
+
+    const toggleServer = (id: string) => setServers((prev) => prev.map((s) => s.id === id ? { ...s, enabled: !s.enabled } : s));
+    const loginServer = (id: string) => setServers((prev) => prev.map((s) => s.id === id ? { ...s, status: 'connected', enabled: true } : s));
+    const removeServer = (id: string) => setServers((prev) => prev.filter((s) => s.id !== id));
+
+    const groups: { scope: ServerScope; label: string; helper: string; file: string }[] = [
+        { scope: 'project', label: 'Project', helper: "Used only with this project, via its .mcp.json", file: '.mcp.json' },
+        { scope: 'user', label: 'User', helper: 'Available across all your projects', file: '~/.mcp.json' },
+    ];
+
+    return (
+        <div className="flex-1 flex flex-col overflow-hidden relative">
+            {/* Header */}
+            <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-100 shrink-0">
+                <button onClick={onBack} className="flex items-center justify-center w-7 h-7 rounded-md text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors">
+                    <ArrowLeft size={16} strokeWidth={1.5} />
+                </button>
+                <span className="text-[14px] font-semibold text-gray-900">MCP Servers</span>
+                <div className="flex-1" />
+                <button
+                    onClick={() => { setRefreshing(true); setTimeout(() => setRefreshing(false), 900); }}
+                    title="Refresh servers"
+                    className="flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                >
+                    <RefreshCw size={14} strokeWidth={2} className={refreshing ? 'animate-spin' : ''} />
+                </button>
+                <button
+                    onClick={() => setAdding({ scope: 'user' })}
+                    className="flex items-center gap-1 px-2.5 py-1.5 text-[12px] font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
+                >
+                    <Plus size={13} strokeWidth={2.5} />Add server
+                </button>
+            </div>
+
+            {/* Scope groups */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-5">
+                {groups.map((g) => {
+                    const list = servers.filter((s) => s.scope === g.scope);
+                    const isCollapsed = collapsed.has(g.scope);
+                    const allOn = list.length > 0 && list.every((s) => s.enabled);
+                    return (
+                        <div key={g.scope}>
+                            {/* Group header */}
+                            <div className="flex items-center gap-2 mb-1">
+                                <button
+                                    onClick={() => setCollapsed((prev) => { const n = new Set(prev); n.has(g.scope) ? n.delete(g.scope) : n.add(g.scope); return n; })}
+                                    className="flex items-center gap-1.5 text-gray-500 hover:text-gray-800 transition-colors"
+                                >
+                                    {isCollapsed ? <ChevronRight size={13} strokeWidth={2.5} /> : <ChevronDown size={13} strokeWidth={2.5} />}
+                                    <span className="text-[11px] font-semibold uppercase tracking-wider">{g.label}</span>
+                                    <span className="text-[11px] text-gray-300 font-medium">{list.length}</span>
+                                </button>
+                                <Switch checked={allOn} onChange={() => setServers((prev) => prev.map((s) => s.scope === g.scope ? { ...s, enabled: !allOn } : s))} disabled={list.length === 0} />
+                                <div className="flex-1" />
+                                <button
+                                    title={`Open ${g.file}`}
+                                    className="flex items-center justify-center w-6 h-6 rounded text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                                >
+                                    <FileJson size={13} strokeWidth={2} />
+                                </button>
+                            </div>
+                            <p className="text-[11px] text-gray-400 mb-2.5 ml-[19px]">{g.helper}</p>
+
+                            <Collapse open={!isCollapsed}>
+                                {list.length === 0 ? (
+                                    <p className="text-[12px] text-gray-400 italic ml-[19px]">No servers in this scope.</p>
+                                ) : (
+                                    <div className="border border-gray-200 rounded-lg overflow-hidden divide-y divide-gray-100">
+                                        {list.map((s) => (
+                                            <McpServerRow
+                                                key={s.id}
+                                                server={s}
+                                                onToggle={() => toggleServer(s.id)}
+                                                onLogin={() => loginServer(s.id)}
+                                                onRemove={() => removeServer(s.id)}
+                                            />
+                                        ))}
+                                    </div>
+                                )}
+                            </Collapse>
+                        </div>
+                    );
+                })}
+            </div>
+
+            {adding && (
+                <AddServerModal
+                    initialScope={adding.scope}
+                    onClose={() => setAdding(null)}
+                    onAdd={(s) => { setServers((prev) => [...prev, s]); setAdding(null); }}
+                />
+            )}
+        </div>
+    );
+}
+
+function McpServerRow({ server, onToggle, onLogin, onRemove }: {
+    server: McpServer;
+    onToggle: () => void;
+    onLogin: () => void;
+    onRemove: () => void;
+}) {
+    const [showTools, setShowTools] = useState(false);
+    const eff = effectiveStatus(server);
+    const hasTools = server.tools.length > 0;
+    const statusLabel = eff === 'needs-auth' ? 'needs login' : eff === 'error' ? 'error' : `${server.tools.length} tools`;
+    const dim = eff === 'disabled';
+
+    return (
+        <div className="group/row">
+            <div className="flex items-center gap-2.5 px-3 py-2.5 hover:bg-gray-50 transition-colors">
+                <span className={`w-2 h-2 rounded-full shrink-0 ${statusDotColor(eff)}`} />
+                <button
+                    onClick={() => hasTools && setShowTools(!showTools)}
+                    className={`flex items-center gap-2 min-w-0 text-left ${hasTools ? '' : 'cursor-default'}`}
+                >
+                    <span className={`text-[13px] font-medium truncate ${dim ? 'text-gray-400' : 'text-gray-900'}`}>{server.name}</span>
+                    <span className={`text-[11.5px] shrink-0 whitespace-nowrap ${eff === 'error' ? 'text-red-500' : 'text-gray-400'}`}>{server.transportType} · {statusLabel}</span>
+                    {hasTools && (showTools
+                        ? <ChevronDown size={11} strokeWidth={2.5} className="text-gray-300 shrink-0" />
+                        : <ChevronRight size={11} strokeWidth={2.5} className="text-gray-300 shrink-0" />)}
+                </button>
+
+                <div className="flex-1" />
+
+                {/* Edit / Delete reveal on hover — the flex-1 spacer absorbs them so the toggle stays put */}
+                <div className="hidden group-hover/row:flex items-center gap-0.5 shrink-0">
+                    <button title="Edit" className="flex items-center justify-center w-6 h-6 rounded text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"><Pencil size={12} strokeWidth={2} /></button>
+                    <button onClick={onRemove} title="Delete" className="flex items-center justify-center w-6 h-6 rounded text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"><Trash2 size={12} strokeWidth={2} /></button>
+                </div>
+
+                {server.status === 'needs-auth' && (
+                    <button onClick={onLogin} className="px-2 py-0.5 text-[11px] font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 transition-colors shrink-0">Login</button>
+                )}
+                <Switch checked={server.enabled} onChange={onToggle} />
+            </div>
+
+            {server.error && eff === 'error' && (
+                <p className="px-3 pb-2.5 pl-[30px] text-[11.5px] text-red-600 leading-relaxed">{server.error}</p>
+            )}
+
+            <Collapse open={showTools}>
+                <div className="px-3 pb-3 pl-[30px] flex flex-wrap gap-1.5">
+                    {server.tools.map((t) => (
+                        <span key={t} className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-50 border border-gray-200 rounded text-[11px] text-gray-500 font-mono">
+                            <Wrench size={10} strokeWidth={2} className="text-gray-300" />{t}
+                        </span>
+                    ))}
+                </div>
+            </Collapse>
+        </div>
+    );
+}
+
+/** Skills management page — built-in (slash commands) + custom */
+function SkillsPage({ skills, setSkills, onBack }: {
+    skills: Skill[];
+    setSkills: React.Dispatch<React.SetStateAction<Skill[]>>;
+    onBack: () => void;
+}) {
+    const [adding, setAdding] = useState(false);
+    if (adding) {
+        return <AddSkillForm onBack={() => setAdding(false)} onAdd={(s) => { setSkills((prev) => [...prev, s]); setAdding(false); }} />;
+    }
+
+    const custom = skills.filter((s) => s.source === 'Custom');
+    const builtin = skills.filter((s) => s.source === 'Built-in');
+    const toggle = (id: string) => setSkills((prev) => prev.map((s) => s.id === id ? { ...s, enabled: !s.enabled } : s));
+    const remove = (id: string) => setSkills((prev) => prev.filter((s) => s.id !== id));
+
+    return (
+        <div className="flex-1 flex flex-col overflow-hidden">
+            <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-100 shrink-0">
+                <button onClick={onBack} className="flex items-center justify-center w-7 h-7 rounded-md text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors">
+                    <ArrowLeft size={16} strokeWidth={1.5} />
+                </button>
+                <span className="text-[14px] font-semibold text-gray-900">Skills</span>
+                <div className="flex-1" />
+                <button onClick={() => setAdding(true)} className="flex items-center gap-1 px-2.5 py-1.5 text-[12px] font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors">
+                    <Plus size={13} strokeWidth={2.5} />Add skill
+                </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                {custom.length > 0 && (
+                    <>
+                        <p className="text-[10.5px] font-medium text-gray-400 uppercase tracking-wider">Custom</p>
+                        {custom.map((s) => <SkillCard key={s.id} skill={s} onToggle={() => toggle(s.id)} onRemove={() => remove(s.id)} />)}
+                    </>
+                )}
+                <p className="text-[10.5px] font-medium text-gray-400 uppercase tracking-wider pt-1">Built-in</p>
+                {builtin.map((s) => <SkillCard key={s.id} skill={s} onToggle={() => toggle(s.id)} />)}
+            </div>
+        </div>
+    );
+}
+
+function SkillCard({ skill, onToggle, onRemove }: { skill: Skill; onToggle: () => void; onRemove?: () => void }) {
+    const [expanded, setExpanded] = useState(false);
+    return (
+        <div className="border border-gray-200 rounded-lg overflow-hidden">
+            <div className="flex items-start gap-3 p-3">
+                <div className="w-7 h-7 rounded-md bg-gray-100 flex items-center justify-center shrink-0">
+                    <Sparkles size={14} strokeWidth={1.75} className={skill.enabled ? 'text-blue-500' : 'text-gray-400'} />
+                </div>
+                <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                            <span className={`text-[13px] font-medium truncate ${skill.enabled ? 'text-gray-900' : 'text-gray-400'}`}>{skill.name}</span>
+                            <span className="px-1.5 py-0.5 text-[10px] font-medium text-gray-500 bg-gray-100 rounded shrink-0">{skill.source}</span>
+                        </div>
+                        <Switch checked={skill.enabled} onChange={onToggle} />
+                    </div>
+                    <button onClick={() => setExpanded(!expanded)} className="flex items-center gap-1.5 mt-0.5 w-full text-left">
+                        <span className="text-[11.5px] text-gray-400 truncate flex-1">{skill.description}</span>
+                        <ChevronDown size={11} className={`text-gray-300 transition-transform shrink-0 ${expanded ? 'rotate-0' : '-rotate-90'}`} />
+                    </button>
+                </div>
+            </div>
+            <Collapse open={expanded}>
+                <div className="px-3 pb-3 pl-[52px] space-y-2">
+                    <p className="text-[11.5px] text-gray-500"><span className="text-gray-400">Triggers when</span> {skill.trigger}.</p>
+                    <div className="flex items-center gap-3 pt-0.5">
+                        <button className="flex items-center gap-1 text-[11.5px] text-gray-400 hover:text-gray-700 transition-colors"><BookOpen size={11} strokeWidth={2} />View</button>
+                        {onRemove && (
+                            <button onClick={onRemove} className="flex items-center gap-1 text-[11.5px] text-gray-400 hover:text-red-600 transition-colors"><Trash2 size={11} strokeWidth={2} />Remove</button>
+                        )}
+                    </div>
+                </div>
+            </Collapse>
+        </div>
+    );
+}
+
+type KvRow = { id: string; key: string; value: string };
+
+function KeyValueEditor({ label, rows, setRows, keyPh, valuePh, addLabel }: {
+    label: string;
+    rows: KvRow[];
+    setRows: React.Dispatch<React.SetStateAction<KvRow[]>>;
+    keyPh: string;
+    valuePh: string;
+    addLabel: string;
+}) {
+    const update = (id: string, field: 'key' | 'value', v: string) => setRows((prev) => prev.map((r) => r.id === id ? { ...r, [field]: v } : r));
+    const fieldCls = 'px-2.5 py-1.5 text-[12px] text-gray-900 font-mono border border-gray-300 rounded-md outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all placeholder:text-gray-400 placeholder:font-sans';
+    return (
+        <div className="space-y-1.5">
+            <label className="text-[12px] font-medium text-gray-600">{label}</label>
+            {rows.map((r) => (
+                <div key={r.id} className="flex items-center gap-1.5">
+                    <input value={r.key} onChange={(e) => update(r.id, 'key', e.target.value)} placeholder={keyPh} className={`w-[38%] ${fieldCls}`} />
+                    <input value={r.value} onChange={(e) => update(r.id, 'value', e.target.value)} placeholder={valuePh} className={`flex-1 min-w-0 ${fieldCls}`} />
+                    <button onClick={() => setRows((prev) => prev.filter((x) => x.id !== r.id))} className="flex items-center justify-center w-6 h-6 rounded text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors shrink-0"><X size={13} strokeWidth={2} /></button>
+                </div>
+            ))}
+            <button onClick={() => setRows((prev) => [...prev, { id: `kv-${Date.now()}`, key: '', value: '' }])} className="flex items-center gap-1 px-2.5 py-1 text-[12px] font-medium text-gray-500 hover:text-gray-800 border border-dashed border-gray-300 rounded-md hover:border-gray-400 transition-colors">
+                <Plus size={12} strokeWidth={2.5} />{addLabel}
+            </button>
+        </div>
+    );
+}
+
+function AddServerModal({ initialScope, onClose, onAdd }: {
+    initialScope: ServerScope;
+    onClose: () => void;
+    onAdd: (s: McpServer) => void;
+}) {
+    const [scope, setScope] = useState<ServerScope>(initialScope);
+    const [name, setName] = useState('');
+    const [transport, setTransport] = useState<'stdio' | 'http'>('stdio');
+    const [command, setCommand] = useState('');
+    const [args, setArgs] = useState('');
+    const [url, setUrl] = useState('');
+    const [envVars, setEnvVars] = useState<KvRow[]>([]);
+    const [headers, setHeaders] = useState<KvRow[]>([]);
+
+    const canAdd = name.trim().length > 0 && (transport === 'stdio' ? command.trim().length > 0 : url.trim().length > 0);
+
+    const submit = () => {
+        if (!canAdd) return;
+        onAdd({
+            id: `srv-${Date.now()}`,
+            name: name.trim(),
+            scope,
+            transportType: transport,
+            command: transport === 'stdio'
+                ? [command.trim(), ...args.split('\n').map((a) => a.trim()).filter(Boolean)].join(' ')
+                : url.trim(),
+            tools: [],
+            status: 'connected',
+            enabled: true,
+        });
+    };
+
+    const inputCls = 'w-full px-3 py-2 text-[13px] text-gray-900 border border-gray-300 rounded-lg outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all placeholder:text-gray-400';
+
+    return (
+        <div className="absolute inset-0 z-30 flex items-center justify-center p-4 bg-black/30 animate-in fade-in duration-150" onClick={onClose}>
+            <div onClick={(e) => e.stopPropagation()} className="w-full max-w-[420px] max-h-[92%] bg-white rounded-xl shadow-2xl flex flex-col animate-in zoom-in-95 duration-150">
+                {/* Header */}
+                <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 shrink-0">
+                    <span className="text-[14px] font-semibold text-gray-900">Add MCP server</span>
+                    <button onClick={onClose} className="flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"><X size={16} strokeWidth={2} /></button>
+                </div>
+
+                {/* Body */}
+                <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                    {/* Scope */}
+                    <div className="space-y-1.5">
+                        <label className="text-[12px] font-medium text-gray-600">Scope</label>
+                        <div className="flex bg-gray-100 rounded-lg p-0.5 border border-gray-200/50">
+                            {(['project', 'user'] as const).map((sc) => (
+                                <button key={sc} onClick={() => setScope(sc)} className={`flex-1 px-3 py-1.5 rounded-md text-[12px] font-medium capitalize transition-all ${scope === sc ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}>
+                                    {sc}
+                                </button>
+                            ))}
+                        </div>
+                        <p className="text-[11px] text-gray-400">{scope === 'project' ? "Saved to this project's .mcp.json and used only with this project." : 'Available across all your projects.'}</p>
+                    </div>
+
+                    <div className="space-y-1.5">
+                        <label className="text-[12px] font-medium text-gray-600">Name</label>
+                        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="my-server" className={inputCls} />
+                    </div>
+
+                    <div className="space-y-1.5">
+                        <label className="text-[12px] font-medium text-gray-600">Transport</label>
+                        <div className="flex bg-gray-100 rounded-lg p-0.5 border border-gray-200/50">
+                            {(['stdio', 'http'] as const).map((tr) => (
+                                <button key={tr} onClick={() => setTransport(tr)} className={`flex-1 px-3 py-1.5 rounded-md text-[12px] font-medium uppercase transition-all ${transport === tr ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}>
+                                    {tr}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {transport === 'stdio' ? (
+                        <>
+                            <div className="space-y-1.5">
+                                <label className="text-[12px] font-medium text-gray-600">Command</label>
+                                <input value={command} onChange={(e) => setCommand(e.target.value)} placeholder="e.g. npx, uvx, python" className={`${inputCls} font-mono placeholder:font-sans`} />
+                            </div>
+                            <div className="space-y-1.5">
+                                <label className="text-[12px] font-medium text-gray-600">Arguments</label>
+                                <textarea value={args} onChange={(e) => setArgs(e.target.value)} rows={3} placeholder={'-y\nyour-mcp-package'} className={`${inputCls} font-mono resize-none placeholder:font-sans leading-relaxed`} />
+                                <p className="text-[11px] text-gray-400">One argument per line. Empty lines are ignored.</p>
+                            </div>
+                            <KeyValueEditor label="Environment variables" rows={envVars} setRows={setEnvVars} keyPh="KEY" valuePh="value" addLabel="Add" />
+                        </>
+                    ) : (
+                        <>
+                            <div className="space-y-1.5">
+                                <label className="text-[12px] font-medium text-gray-600">Server URL</label>
+                                <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://example.com/mcp" className={`${inputCls} font-mono placeholder:font-sans`} />
+                            </div>
+                            <KeyValueEditor label="Headers" rows={headers} setRows={setHeaders} keyPh="Header" valuePh="value" addLabel="Add header" />
+                        </>
+                    )}
+                </div>
+
+                {/* Footer */}
+                <div className="flex items-center justify-end gap-2 px-4 py-3 border-t border-gray-100 shrink-0">
+                    <button onClick={onClose} className="px-4 py-1.5 text-[13px] text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md font-medium transition-colors">Cancel</button>
+                    <button onClick={submit} disabled={!canAdd} className={`px-4 py-1.5 text-[13px] rounded-md font-medium transition-colors ${canAdd ? 'text-white bg-blue-600 hover:bg-blue-700' : 'text-gray-400 bg-gray-100 cursor-not-allowed'}`}>Add</button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function AddSkillForm({ onBack, onAdd }: { onBack: () => void; onAdd: (s: Skill) => void }) {
+    const [mode, setMode] = useState<'create' | 'import'>('create');
+    const [name, setName] = useState('');
+    const [description, setDescription] = useState('');
+    const [instructions, setInstructions] = useState('');
+
+    const canAdd = mode === 'create'
+        ? name.trim().length > 0 && instructions.trim().length > 0
+        : name.trim().length > 0;
+
+    const submit = () => {
+        if (!canAdd) return;
+        onAdd({
+            id: `skill-${Date.now()}`,
+            name: name.trim(),
+            description: description.trim() || 'Custom skill',
+            trigger: 'relevant to your request',
+            source: 'Custom',
+            enabled: true,
+        });
+    };
+
+    return (
+        <div className="flex-1 flex flex-col overflow-y-auto">
+            <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-100 shrink-0">
+                <button onClick={onBack} className="flex items-center justify-center w-7 h-7 rounded-md text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors">
+                    <ArrowLeft size={16} strokeWidth={1.5} />
+                </button>
+                <span className="text-[14px] font-semibold text-gray-900">Add Skill</span>
+            </div>
+
+            <div className="p-5 space-y-5 flex-1">
+                <div className="flex bg-gray-100 rounded-lg p-0.5 border border-gray-200/50">
+                    {(['create', 'import'] as const).map((m) => (
+                        <button key={m} onClick={() => setMode(m)} className={`flex-1 px-3 py-1.5 rounded-md text-[12px] font-medium transition-all ${mode === m ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}>
+                            {m === 'create' ? 'Create new' : 'Import'}
+                        </button>
+                    ))}
+                </div>
+
+                {mode === 'create' ? (
+                    <div className="space-y-4">
+                        <div className="space-y-1.5">
+                            <label className="text-[12px] font-medium text-gray-600">Name</label>
+                            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Connector Scaffolding" className="w-full px-3 py-2 text-[13px] text-gray-900 border border-gray-300 rounded-lg outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all placeholder:text-gray-400" />
+                        </div>
+                        <div className="space-y-1.5">
+                            <label className="text-[12px] font-medium text-gray-600">Description</label>
+                            <input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="One line on what this skill does" className="w-full px-3 py-2 text-[13px] text-gray-900 border border-gray-300 rounded-lg outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all placeholder:text-gray-400" />
+                        </div>
+                        <div className="space-y-1.5">
+                            <label className="text-[12px] font-medium text-gray-600">Instructions</label>
+                            <textarea value={instructions} onChange={(e) => setInstructions(e.target.value)} rows={6} placeholder="Describe how the copilot should behave when this skill is active…" className="w-full px-3 py-2 text-[13px] text-gray-900 border border-gray-300 rounded-lg outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all resize-none placeholder:text-gray-400 leading-relaxed" />
+                        </div>
+                    </div>
+                ) : (
+                    <div className="space-y-4">
+                        <div className="border border-dashed border-gray-300 rounded-lg p-6 text-center">
+                            <Download size={20} strokeWidth={1.5} className="text-gray-300 mx-auto mb-2" />
+                            <p className="text-[12.5px] text-gray-500">Drop a skill folder or <span className="text-blue-600 font-medium">.zip</span> here</p>
+                            <p className="text-[11px] text-gray-400 mt-1">Must contain a SKILL.md file</p>
+                        </div>
+                        <div className="space-y-1.5">
+                            <label className="text-[12px] font-medium text-gray-600">Skill name</label>
+                            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Detected from SKILL.md" className="w-full px-3 py-2 text-[13px] text-gray-900 border border-gray-300 rounded-lg outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all placeholder:text-gray-400" />
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            <div className="mt-auto px-5 py-3 border-t border-gray-100 flex items-center justify-end gap-2 shrink-0">
+                <button onClick={onBack} className="px-4 py-1.5 text-[13px] text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md font-medium transition-colors">Cancel</button>
+                <button onClick={submit} disabled={!canAdd} className={`px-4 py-1.5 text-[13px] rounded-md font-medium transition-colors ${canAdd ? 'text-white bg-blue-600 hover:bg-blue-700' : 'text-gray-400 bg-gray-100 cursor-not-allowed'}`}>Add skill</button>
+            </div>
+        </div>
+    );
+}
+
