@@ -923,14 +923,14 @@ export default function CopilotPanel({
                             <div className={`flex bg-gray-100 rounded-[6px] p-0.5 border border-gray-200/50 ${isExecuting ? 'opacity-50 pointer-events-none' : ''}`}>
                                 <button
                                     onClick={() => setInputMode('build')}
-                                    className={`flex items-center gap-1.5 px-3 py-1 rounded-[4px] text-[12px] font-medium transition-all ${inputMode === 'build' ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
+                                    className={`flex items-center gap-1.5 px-3 py-1 rounded-[4px] text-[12px] font-medium transition-all ${inputMode === 'build' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
                                 >
                                     <Hammer size={12} />
                                     Build
                                 </button>
                                 <button
                                     onClick={() => setInputMode('plan')}
-                                    className={`flex items-center gap-1.5 px-3 py-1 rounded-[4px] text-[12px] font-medium transition-all ${inputMode === 'plan' ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
+                                    className={`flex items-center gap-1.5 px-3 py-1 rounded-[4px] text-[12px] font-medium transition-all ${inputMode === 'plan' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
                                 >
                                     <LayoutList size={12} />
                                     Plan
@@ -965,19 +965,19 @@ export default function CopilotPanel({
                                     if (chatState === 'generating') setChatState('review');
                                     else if (chatState === 'plan-generating') setChatState('plan-review');
                                     else setChatState('plan-complete');
-                                }} className="w-[28px] h-[28px] flex items-center justify-center text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors">
-                                    <StopCircle size={18} strokeWidth={1.5} />
+                                }} className="w-[28px] h-[28px] flex items-center justify-center text-white bg-gray-700 hover:bg-gray-800 rounded-md transition-colors">
+                                    <StopCircle size={16} strokeWidth={2} />
                                 </button>
                             ) : (
                                 <button
                                     onClick={handleStartGeneration}
                                     disabled={!inputValue.trim() && chatState !== 'empty'}
                                     className={`w-[28px] h-[28px] flex items-center justify-center rounded-md transition-colors ${inputValue.trim() || chatState === 'empty'
-                                        ? 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
-                                        : 'text-gray-300 cursor-not-allowed'
+                                        ? 'text-white bg-blue-600 hover:bg-blue-700 shadow-sm'
+                                        : 'text-gray-400 bg-gray-100 cursor-not-allowed'
                                         }`}
                                 >
-                                    <Send size={16} strokeWidth={1.5} />
+                                    <Send size={14} strokeWidth={2} />
                                 </button>
                             )}
                         </div>
