@@ -209,7 +209,7 @@ Each scope has a group toggle and a shortcut to open its `.mcp.json` in the edit
 
 [Open MCP servers](#action-openExtensions)
 
-**Skills page** — grouped into **Built-in** (the existing slash commands like `/openapi`, `/datamap`) and **Custom**, each with an enable toggle and a "triggers when…" hint. Add via *Create new* or *Import* a skill folder. (The current build lists Skills as "coming soon"; this prototype proposes the full design.)
+**Skills page** — two collapsible top-level groups: **Built-in skills** (shipped with the assistant) and **Custom skills** (the ones you've added to this project — flat list, no further hierarchy). Each row shows the skill **name** and a **truncated description** — no per-row icons or toggles. Custom rows have inline **Edit** / **Delete**. Clicking any row opens a **detail view** that renders the full skill content as **markdown**. Add via the **+ Add skill** button in the header.
 
 [Open Skills](#action-openSkills)
 
