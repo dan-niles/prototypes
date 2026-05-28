@@ -1941,6 +1941,7 @@ function SkillsPage({ skills, setSkills, onBack }: {
                 onBack={() => setViewingId(null)}
                 onEdit={isCustom ? () => { } : undefined}
                 onRemove={isCustom ? () => { remove(viewing.id); setViewingId(null); } : undefined}
+                onToggle={isCustom ? () => toggleSkill(viewing.id) : undefined}
             />
         );
     }
@@ -1952,9 +1953,7 @@ function SkillsPage({ skills, setSkills, onBack }: {
     const isOpen = (key: string) => !collapsed.has(key);
 
     const toggleSkill = (id: string) => setSkills((prev) => prev.map((s) => s.id === id ? { ...s, enabled: !s.enabled } : s));
-    const builtinAllOn = builtIn.length > 0 && builtIn.every((s) => s.enabled);
     const customAllOn = custom.length > 0 && custom.every((s) => s.enabled);
-    const toggleAllBuiltin = () => setSkills((prev) => prev.map((s) => s.source === 'Built-in' ? { ...s, enabled: !builtinAllOn } : s));
     const toggleAllCustom = () => setSkills((prev) => prev.map((s) => s.source === 'Custom' ? { ...s, enabled: !customAllOn } : s));
 
     return (
@@ -1973,19 +1972,16 @@ function SkillsPage({ skills, setSkills, onBack }: {
             <div className="flex-1 overflow-y-auto p-4 space-y-5">
                 {/* Built-in skills */}
                 <div>
-                    <div className="flex items-center gap-2 mb-1">
-                        <button onClick={() => toggleCollapsed('builtin')} className="flex items-center gap-1.5 text-gray-500 hover:text-gray-800 transition-colors">
-                            {isOpen('builtin') ? <ChevronDown size={13} strokeWidth={2.5} /> : <ChevronRight size={13} strokeWidth={2.5} />}
-                            <span className="text-[11px] font-semibold uppercase tracking-wider">Built-in skills</span>
-                            <span className="text-[11px] text-gray-300 font-medium">{builtIn.length}</span>
-                        </button>
-                        <Switch checked={builtinAllOn} onChange={toggleAllBuiltin} disabled={builtIn.length === 0} />
-                    </div>
+                    <button onClick={() => toggleCollapsed('builtin')} className="flex items-center gap-1.5 mb-1 text-gray-500 hover:text-gray-800 transition-colors">
+                        {isOpen('builtin') ? <ChevronDown size={13} strokeWidth={2.5} /> : <ChevronRight size={13} strokeWidth={2.5} />}
+                        <span className="text-[11px] font-semibold uppercase tracking-wider">Built-in skills</span>
+                        <span className="text-[11px] text-gray-300 font-medium">{builtIn.length}</span>
+                    </button>
                     <p className="text-[11.5px] text-gray-400 mb-2.5 ml-[19px]">Skills built into the assistant.</p>
                     <Collapse open={isOpen('builtin')}>
                         {builtIn.length > 0 && (
                             <div className="border border-gray-200 rounded-lg overflow-hidden divide-y divide-gray-100">
-                                {builtIn.map((s) => <SkillRow key={s.id} skill={s} onToggle={() => toggleSkill(s.id)} onOpen={() => setViewingId(s.id)} />)}
+                                {builtIn.map((s) => <SkillRow key={s.id} skill={s} onOpen={() => setViewingId(s.id)} />)}
                             </div>
                         )}
                     </Collapse>
@@ -2021,7 +2017,7 @@ function SkillsPage({ skills, setSkills, onBack }: {
 
 function SkillRow({ skill, onToggle, onOpen, onEdit, onRemove }: {
     skill: Skill;
-    onToggle: () => void;
+    onToggle?: () => void;
     onOpen: () => void;
     onEdit?: () => void;
     onRemove?: () => void;
@@ -2047,19 +2043,22 @@ function SkillRow({ skill, onToggle, onOpen, onEdit, onRemove }: {
                         )}
                     </div>
                 )}
-                <div className="shrink-0 mt-0.5">
-                    <Switch checked={skill.enabled} onChange={onToggle} />
-                </div>
+                {onToggle && (
+                    <div className="shrink-0 mt-0.5">
+                        <Switch checked={skill.enabled} onChange={onToggle} />
+                    </div>
+                )}
             </div>
         </div>
     );
 }
 
-function SkillDetailView({ skill, onBack, onEdit, onRemove }: {
+function SkillDetailView({ skill, onBack, onEdit, onRemove, onToggle }: {
     skill: Skill;
     onBack: () => void;
     onEdit?: () => void;
     onRemove?: () => void;
+    onToggle?: () => void;
 }) {
     return (
         <div className="flex-1 flex flex-col overflow-hidden">
@@ -2077,6 +2076,9 @@ function SkillDetailView({ skill, onBack, onEdit, onRemove }: {
                     <button onClick={onRemove} title="Delete skill" className="flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors">
                         <Trash2 size={14} strokeWidth={2} />
                     </button>
+                )}
+                {onToggle && (
+                    <Switch checked={skill.enabled} onChange={onToggle} />
                 )}
             </div>
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
